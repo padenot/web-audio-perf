@@ -1,0 +1,145 @@
+<pre class='metadata'>
+Title: Web Audio API performance and debugging notes
+Status: ED
+ED: https://padenot.github.io/web-audio-perf
+shortname: web-audio-perf
+Level:1 - an integer for the spec's level. If you're unsure, just put "1".
+Editor: Paul Adenot <padenot@mozilla.com>
+Abstract: These notes present the Web Audio API from a performance and debugging point of view, outlining some differences between implementation.
+group: audiowg
+Boilerplate: omit property-index logo copyright references property-index
+</pre>
+<section>
+  <h2>Introduction</h2>
+  In this tutorial, we will look at two different aspects of working with the Web
+  Audio API.
+  
+  First, we’ll have a look into the performance characteristics of the different
+  AudioNodes available, their performance profile, overall CPU and memory cost,
+  and strategies to use resources (CPU, memory) more efficiently. For example,
+  we’ll learn how to look into the source code of different implementations, and
+  determine the algorithm and techniques used in each browser, to make better
+  choices when developing applications.
+  
+  We’ll then look into ways to make processing lighter, while still retaining the
+  essence of the application, for example to make a "degraded" mode for mobile.
+  We’ll use techniques such as substituting rendering methods to trade fidelity
+  against CPU load, pre-baking assets, minimizing resampling.
+  
+  Throughout the workshop, we’ll use tools and techniques to debug audio problems,
+  both using in-browser tools, or JavaScript code designed to inspect static and
+  dynamic audio graphs and related Web Audio API objects.
+</section>
+<section>
+  <h2>Optimizating Web Audio API applications</h2>
+  <h3>Nodes performance characteristics</h3>
+  <h4> AudioBufferSourceNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>The <code>AudioBufferSourceNode</code> automatically resamples its
+    <code>buffer</code> attrbute to the sample-rate of the <code>AudioContext</code>. Resampling is
+    done differently in different browsers. Edge, Blink and Webkit based browser
+    use linear resampling, that is cheap, has no latency, but has low quality.
+    Gecko based browser use a more expensive but higher quality technique, that
+    introduces some latency.</dd>
+    <dt>Memory</dt>
+    <dd>The <code>AudioBufferSourceNode</code> reads sample from an
+    <code>AudioBuffer</code> that can be shared between multiple nodes. The
+    resampler used in Gecko uses some memory for the filter, but nothing major.</dd>
+  </dl>
+  <h4> ScriptProcessorNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>On Gecko-based browsers, this node uses a message queue to send buffers
+    back and forth between the main thread and the rendering thread. On other
+    browsers, buffer ping-ponging is used. This means that the former is more
+    reliable against dropouts, but can have a higher latency (depending on the
+    main thread event loop load), whereas the latter drops
+    out more easily, but has fixed latency.</dd>
+    <dt>Memory</dt>
+    <dd>
+      Buffers have to be allocated to move audio back and forth between threads.
+    Since Gecko uses a buffer queue, more memory can be used.
+    </dd>
+    <dt>Latency</dt>
+    <dd> The latency is specified when creating the node. If Gecko has trouble
+    keeping up, the latency will increase, up to a point where audio will start
+    to drop.</dd>
+  <h4> AnalyserNode </h4>
+  <dt>CPU</dt>
+  <dd>This node can give frenquency domain data, using a Fast Fourier Transform
+  algorithm, that is expensive to compute. The higher the buffer size, the more
+  expensive the computing is. <code>byte</code> version of the analysis methods
+  are not cheaper than <code>float</code> alternative, they are provided for
+  convenience: the <code>byte</code> version are computed from the
+  <code>float</code> version, using simple quantization to 2^8 values.</dd>
+  <dt>Memory</dt>
+  <dd>Fast Fourier Transform algorithms use internal memory for processing.
+  Different platforms and browsers have different algorithms, so it's hard to
+  quantify exactly how much memory is going to be used. Additionnaly, some
+  memory is going to be used for the <code>AudioBuffer</code> passed in to the
+  analysis methods. </dd>
+  <dt>Latency</dt>
+  <dd>Because of the windowing function there can be some perceived latency in
+  this node, but windowing can be disabled by setting it to 0.</dd>
+  <dt>Tail</dt>
+  <dd>Because of the windowing function there can be a tail with
+  this node, but windowing can be disabled by setting it to 0.</dd>
+  <h4> GainNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>Gecko-based browsers, the gain is always applied lazily, and folded in
+    before processing that require to touch the samples, or before send the
+    rendered buffer back to the operating system, so <code>GainNode</code> with
+    a fixed gain are essentially free. In other UAs, the gain is applied to the
+    input buffer as it's received. When automating the gain using
+    <code>AudioParam</code> methods, the gain is applied to the buffer in all
+    browsers. </dd>
+    <dt>Memory</dt>
+    <dd>A <code>GainNode</code> is stateless and has therefore no associated
+    memory cost.</dd>
+  </dl>
+  <h4> DelayNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>This node essentially copies input data into a buffer, and reads from this
+    buffer at a different location to compute its output buffer.</dd>
+    <dt> Memory</dt>
+    <dd> The memory cost is a function of the number of input and output
+    channels and the length of the delay line. </dd>
+    <dt>Latency</dt>
+    <dd>Obviously this node introduces latency, but no more than the latency set
+    by its parameter</dd>
+    <dt>Tail</dt>
+    <dd>This node is being keps around (not collected) until it has finished
+    reading and outputing all of its internal buffer.</dd>
+  </dl>
+  <h4> BiquadFilterNode </h4>
+  <h4> IIRFilterNode </h4>
+  <h4> WaveShaperNode </h4>
+  <h4> PannerNode </h4>
+  <h4> StereoPannerNode </h4>
+  <h4> ConvolverNode </h4>
+  <h4> ChannelSplitterNode </h4>
+  <h4> ChannelMergerNode </h4>
+  <h4> DynamicsCompressorNode </h4>
+  <h4> OscillatorNode </h4>
+  <h4> PeriodicWave </h4>
+  <h3> Other noteworthy performance characteristics </h3>
+  <h4> AudioParam </h4>
+  <h4> Node ordering </h4>
+</section>
+<section>
+  <h2>Using lighter processing</h2>
+  <h3>Built-in resampling</h3>
+  <h3>Asset pre-baking</h3>
+  <h3>Cheaper reverb</h3>
+  <h3>Cheaper panning</h3>
+</section>
+<section>
+  <h2>Debugging Web Audio API applications</h2>
+  <h3>Node Wrapping</h3>
+  <h3>Firefox' Web Audio API debugger</h3>
+</section>
+</body>
+</html>
