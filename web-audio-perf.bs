@@ -6,33 +6,56 @@ shortname: web-audio-perf
 Level:1 - an integer for the spec's level. If you're unsure, just put "1".
 Editor: Paul Adenot <padenot@mozilla.com>
 Abstract: These notes present the Web Audio API from a performance and debugging point of view, outlining some differences between implementation.
-group: audiowg
+group: plain
 Boilerplate: omit property-index logo copyright references property-index
 </pre>
 <section>
   <h2>Introduction</h2>
   In this tutorial, we will look at two different aspects of working with the Web
   Audio API.
-  
+
   First, we’ll have a look into the performance characteristics of the different
   AudioNodes available, their performance profile, overall CPU and memory cost,
   and strategies to use resources (CPU, memory) more efficiently. For example,
   we’ll learn how to look into the source code of different implementations, and
   determine the algorithm and techniques used in each browser, to make better
   choices when developing applications.
-  
+
   We’ll then look into ways to make processing lighter, while still retaining the
   essence of the application, for example to make a "degraded" mode for mobile.
   We’ll use techniques such as substituting rendering methods to trade fidelity
   against CPU load, pre-baking assets, minimizing resampling.
-  
+
   Throughout the workshop, we’ll use tools and techniques to debug audio problems,
   both using in-browser tools, or JavaScript code designed to inspect static and
   dynamic audio graphs and related Web Audio API objects.
 </section>
 <section>
   <h2>Optimizating Web Audio API applications</h2>
-  <h3>Nodes performance characteristics</h3>
+  <h3><code>AudioNode</code>s characteristics</h3>
+  This section explains the characteristics of each of the
+  <code>AudioNode</code> that are available in the Web Audio API, from four
+  angles.
+
+  <ul>
+  <li>
+  CPU, that is the temporal complexity of the processing algorithm;
+  </li>
+  <li>
+  Memory, whether node needs to keep buffers around, or needs internal memory
+  for processing;
+  </li>
+  <li>
+  Latency, whether the processing induces a delay in the processing chain. If
+  this section is not present, the node does not add latency;
+  </li>
+  <li>
+  Tail, whether you can have a non-zero output when the
+  input is continously silent (for example because the audio source has
+  stopped). If this section is not present, the node does not have a tail.
+  </li>
+  </ul>
+
   <h4> AudioBufferSourceNode </h4>
   <dl>
     <dt>CPU</dt>
@@ -65,9 +88,11 @@ Boilerplate: omit property-index logo copyright references property-index
     <dd> The latency is specified when creating the node. If Gecko has trouble
     keeping up, the latency will increase, up to a point where audio will start
     to drop.</dd>
+  </dl>
   <h4> AnalyserNode </h4>
+  <dl>
   <dt>CPU</dt>
-  <dd>This node can give frenquency domain data, using a Fast Fourier Transform
+  <dd>This node can give frequency domain data, using a Fast Fourier Transform
   algorithm, that is expensive to compute. The higher the buffer size, the more
   expensive the computing is. <code>byte</code> version of the analysis methods
   are not cheaper than <code>float</code> alternative, they are provided for
@@ -85,6 +110,7 @@ Boilerplate: omit property-index logo copyright references property-index
   <dt>Tail</dt>
   <dd>Because of the windowing function there can be a tail with
   this node, but windowing can be disabled by setting it to 0.</dd>
+</dl>
   <h4> GainNode </h4>
   <dl>
     <dt>CPU</dt>
@@ -115,19 +141,164 @@ Boilerplate: omit property-index logo copyright references property-index
     reading and outputing all of its internal buffer.</dd>
   </dl>
   <h4> BiquadFilterNode </h4>
-  <h4> IIRFilterNode </h4>
+  <dl>
+  <dt>CPU</dt>
+    <dd>Biquad filters are relatively cheap (five multiplication and four
+    additions per sample).</dd>
+  <dt>Memory</dt>
+  <dd>Very cheap, four float for the memory of the filter.</dd>
+  <dt>Latency</dt>
+  <dd>Exactly two frames of latency, due to how the filter works.</dd>
+  <dt>Tail</dt>
+  <dd>Variable tail, depending on the filter setting (in particular the
+  resonnance).</dd>
+ </dl>
+ <h4> IIRFilterNode </h4>
+ <dl>
+   <dt>CPU</dt>
+   <dd>Similarly to the biquad filter, they are rather cheap. The complexity
+   depends on the number of coefficients, that is set at construction.</dd>
+   <dt>Memory</dt>
+   <dd>Again, the memory usage depends on the number of coefficients, but is
+   overall very small (a couple floats per coefficients).</dd>
+   <dt>Latency</dt>
+   <dd>A frame per coefficient.</dd>
+   <dt>Tail</dt>
+   <dd>Variable, depending on the value of the coefficients.</dd>
+  </dl>
   <h4> WaveShaperNode </h4>
-  <h4> PannerNode </h4>
+  <dl>
+  <dt>CPU</dt>
+  <dd>The computational complexity depends on the oversampling. If no
+  oversampling is used, a sample is read in the wave table, using linear
+  interpolation, which is a cheap process in itself. If oversampling is used, a
+  resampler is used. Depending on the UA, different resampling techniques can be
+  used (FIR, linear, etc.).</dd>
+  <dt>Memory</dt>
+  <dd>This node is making a copy of the curve, so it can be quite expensive in
+  terms of memory.</dd>
+  <dt>Latency</dt>
+  <dd>This node does not add latency if oversampling is not used. If
+  over-sampling is used, and depending on the resampling technique, latency can
+  be added by the processing.</dd>
+  <dt>Tail</dt>
+  <dd>Similarly, depending on the resampling technique used, and when using
+  over-sampling, a tail can be present.</dd>
+  </dl>
+  <h4> PannerNode, when <code>panningModel == "HRTF"</code> </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd><strong>Very</strong> expensive. This node is constantly doing
+    convolutions between the input data and a set of HRTF impulse, that are
+    characteristic of the elevation and azimuth. Additionaly, when the position
+    changes, it interpolates (cross-fades) between the old and new position, so
+    that the transition between two HRTF impulses is smooth. This means that for
+    a stereo source, and while moving, there can be four convolver processing at
+    once. Additionaly, the HRTF panning needs short delay lines.</dd>
+    <dt>Memory</dt>
+    <dd>The HRTF panner needs to load a set of HRTF impulses around when
+    operating. Gecko loads the HRTF database only if needed, while other UAs
+    load it unconditionally. The convolver and delay lines require memory as
+    well, depending on the Fast Fourier Transform implementation used.</dd>
+    <dt>Latency</dt>
+    <dd>HRTF always adds some amount of delay, but the amount depends on the
+    azimuth and elevation.</dd>
+    <dt>Tail</dt>
+    <dd>Similarly, depending on the azimuth and elevation, a tail of different
+    duration is present.</dd>
+  </dl>
+  <h4> PannerNode, when <code>panningModel == "equalpower"</code> </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>Rather cheap. The processing has two parts:
+    <ul>
+      <li>
+        First, the azimuth needs to be determined from the cartesian coordinate
+        of the source and listener, this is a bit of vector maths, and can be
+        cached by the implementation for static sources.
+      </li>
+      <li>
+        Then, gain is applied, maybe blending the two channels is the source is
+        stereo.
+      </li>
+  </ul> </dd>
+    <dt>Memory</dt>
+    <dd>The processing being stateless, this has no memory cost.</dd>
+  </dl>
   <h4> StereoPannerNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>Similar to the <code>"equalpower"</code> panning, but the azimut is
+    cheaper to compute since there is no need to do the vector math, we already
+    have the position.  </dd>
+    <dt>Memory</dt>
+    <dd>Stateless processing, no memory cost.</dd>
+  </dl>
   <h4> ConvolverNode </h4>
-  <h4> ChannelSplitterNode </h4>
-  <h4> ChannelMergerNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>Very expensive, and depending on the duration of the convolution
+    impulse. A background thread is used to offload some of the processing, but
+    computational burst can occur in some browsers. Basically, multiple FFT are
+    computed for each block.</dd>
+    <dt>Memory</dt>
+    <dd>The node is making a copy of the buffer for internal use, so it's taking
+    a fair bit or memory (depending on the duration of the impulse).
+    Additionaly, some memory can be used for the Fast Fourier Transform
+    implementation, depending on the platform.
+    </dd>
+    <dt>Latency</dt>
+    <dd>Convolver can be used to create delay-like effect, so latency can
+    certainly be introduced by a <code>ConvolverNode</code>.</dd>
+    <dt>Tail</dt>
+    <dd>Depending on the convolution impulse, there can be a tail.</dd>
+  </dl>
+  <h4> ChannelSplitterNode / ChannelMergerNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>This is merely splitting or merging channels, that is copying buffer
+    around.
+    </dd>
+    <dt>Memory</dt>
+    <dd>No memory implications</dd>
+  </dl>
   <h4> DynamicsCompressorNode </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>The exact algorithm is not specificed yet. In practice, it's the same in
+    all browsers, a peak detecting look-ahead, with a pre-emphasis and
+    post-de-emphasis, not too expensive.</dd>
+    <dt>Memory</dt>
+    <dd>Not very expensive in terms of memory, just some </dd>
+    <dt>Latency</dt>
+    <dd>Being a look ahead compressor, it introduces a fixed look-ahead of
+    six milliseconds.</dd>
+    <dt>Tail</dt>
+    <dd>Because of the emphasis, there is a tail. Also, compression can boost
+    quiet audio, so audible sound can appear to last longer.</dd>
+  </dl>
   <h4> OscillatorNode </h4>
-  <h4> PeriodicWave </h4>
+  <dl>
+    <dt>CPU</dt>
+    <dd>The basic wave forms are implemented using multiple wave tables computed
+    using the inverse Fourier transform of a buffer with carefully chosen
+    coefficients (apart from the sine that is computed directly in Gecko). This
+    means that there is an initial cost when changing the wave form, that is
+    cached in Gecko-based browser. After the initial cost, processing is
+    essentially doing linear interpolation between multiple wave tables. When
+    the frequency changes, new tables have to be computed.
+    </dd>
+    <dt>Memory</dt>
+    <dd>A number of wave tables have to be stored, that can take up some memory.
+    Those are shared in Gecko-based browsers, apart from the sine wave in Gecko,
+    that is directly computed.</dd>
+  </dl>
   <h3> Other noteworthy performance characteristics </h3>
   <h4> AudioParam </h4>
   <h4> Node ordering </h4>
+  <h4> Latency </h4>
+  <h4> Memory model </h4>
+  <h4> Browser architecture </h4>
 </section>
 <section>
   <h2>Using lighter processing</h2>
@@ -141,5 +312,7 @@ Boilerplate: omit property-index logo copyright references property-index
   <h3>Node Wrapping</h3>
   <h3>Firefox' Web Audio API debugger</h3>
 </section>
+<div data-fill-with="conformance">
+</div>
 </body>
 </html>
