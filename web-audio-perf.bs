@@ -3,7 +3,7 @@ Title: Web Audio API performance and debugging notes
 Status: ED
 ED: https://padenot.github.io/web-audio-perf
 shortname: web-audio-perf
-Level:1 - an integer for the spec's level. If you're unsure, just put "1".
+Level:1
 Editor: Paul Adenot <padenot@mozilla.com>
 Abstract: These notes present the Web Audio API from a performance and debugging point of view, outlining some differences between implementation.
 group: plain
@@ -293,6 +293,7 @@ Boilerplate: omit property-index logo copyright references property-index
     Those are shared in Gecko-based browsers, apart from the sine wave in Gecko,
     that is directly computed.</dd>
   </dl>
+
   <h3> Other noteworthy performance characteristics </h3>
   <h4> Memory model </h4>
 
@@ -395,11 +396,107 @@ Boilerplate: omit property-index logo copyright references property-index
   at computing automation curves, it is event more efficient to not use
   <code>AudioParam</code> if not necessary, implementation often take different
   code path if they know an <code>AudioParam</code> value is going to be
-  constant for a block.
+  constant for a block, and this is easier to detect if the <code>value</code>
+  attribute has been directly set.
 
   <h4> Node ordering </h4>
+
+  Audio nodes have to be processed in a specific order to get correct results.
+  For example, considering a graph with an <code>AudioBufferSourceNode</code>
+  connected to a <code>GainNode</code>, connected to the
+  <code>AudioDestinationNode</code>. The <code>AudioBufferSourceNode</code> has
+  to be processed first, it gets
+  the values from the <code>AudioBuffer</code> and maybe resamples them.
+  The output of this node is passed to the <code>GainNode</code>, that applies
+  its own processing, passing down the computed data to the
+  <code>AudioDestinatinoNode</code>.
+
+  Gecko-based browsers and other engines have taken two different approaches for
+  ordering Web Audio API graphs.
+
+  Gecko uses an algorithm based on Tim Leslie's iterative implementation
+  [<a href="http://www.timl.id.au/?p=327">1</a>][<a
+    href="https://github.com/scipy/scipy/blob/e2c502fca/scipy/sparse/csgraph/_traversal.pyx#L582">2</a>]
+  of Pearce's variant [<a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.102.1707">3</a>] of Tarjan's strongly connected components (SCC)
+  algorithm, which is basically a kind of topological sort that takes cycles
+  into account to properly handle cycles with <code>DelayNode</code>.
+
+  Other engines simply do a depth first walk of the graph, uses a graph coloring
+  approach to detect cycles, and pull from the <code>DelayNode</code> internal
+  buffer in case of cycles. This is way simpler, but differs in rendering with
+  the other approach.
+
+  Gecko is only running the algorithm if the topology of the graph has changed
+  (for example if a node has been added, or a connection has been removed),
+  while other engine perform the traversal for each rendering quantum. Depending
+  on if the application has a mostly static or very dynamic graph topology, this
+  can have an impact on performance.
+
   <h4> Latency </h4>
+
+  Audio output latency is very important for the Web Audio API. Usually,
+  implementations use the lowest available audio latency on the system to run
+  the <em>rendering thread</em>. Roughly, this mean on the order of 10ms on
+  Windows (post-Vista, using WASAPI), very very low on OSX and iOS (a few
+  milliseconds), a 30-40ms on Linux/PulseAudio. There are not yet engines that
+  support Jack with low-latency code, altough this would certainly have amazing
+  latency numbers.  Windows XP does not usually have great output latency, and
+  licensing terms (and available time to write code!) prevent the use of ASIO on
+  Windows, which would also have great performance.
+
+  Android devices are a bit of a problem, as the latency can vary between 12.5ms
+  on a Galaxy Nexus (which was the device with the lowest latency) up to 150ms
+  on some very cheap devices. Altough there is a way to know the latency using
+  system API (that browsers use for audio/video synchronization), Web App
+  authors don't currently have a way to know the output latency. This is
+  currently being addressed (XXX GitHub issue/PR/Spec here).
+
+  Creating <code>AudioContext</code> with a higher latency is a feature that is
+  currently under discussion (XXX GitHub issue/PR/Spec here). This allows a
+  number of things, such as battery savings for use-cases that don't require
+  very low latency. For example, an application that only does playback, but
+  wants to display the Fourier tranform of the signal, or simply the wave form
+  of the signal itself, have an equalizer on the signal path, apply compression,
+  all would benefit from this feature, because real-time interaction is not
+  required. Of course, the latency that is the most efficient, battery-wise and
+  regardless of audio output latency depends on the operating system and
+  hardware.
+
+  By using bigger rendering quantum (by using bigger buffers, caused by
+  increasing the audio latency in most systems) also allows creating and
+  rendering more complex Web Audio API graphs. Indeed, audio systems often pull
+  quite a lot of memory into CPU cache lines to compute each rendering block (be
+  it audio sample data, automation timeline event arrays, the memory for the
+  nodes themselves, etc.). Rendering for a longer period of time means having
+  caches that are more hot and lets the CPU crunching numbers without having to
+  wait for memory faults. DAW users often increase the latency when they heard
+  "audio crackles" (under-runs), the same logic applies here. Of course, there
+  is a point where having a higher latency is actually not helping the
+  computation, which depends on all systems.
+
   <h4> Browser architecture </h4>
+
+  Firefox (that is based on Gecko) uses only one process for all the tabs and
+  the chrome (which is the user interface of the browser, that is, the tabs, the
+  menus, etc., a very confusing term nowadays), whereare other browsers use
+  multiple processes.
+
+  While the rendering of Web Audio API graphs happen on dedicated thread, this
+  has important implications in terms of responsiveness. The event loop is Gecko
+  is shared between all the tabs. When using a Web Application that uses the Web
+  Audio API, if all the other tabs are still doing some processing, receiving
+  events, running script, etc. in the background, the Web Audio API calls will
+  be delayed, so it is necessary to plan a bit more in advance (see Chris
+  Wilson's Tale of two clocks XXX Add link). This is somewhat being addressed
+  by the electrolysis (e10s) project, but there is still a long way to go to
+  catch up in responsiveness.
+
+  Other engines usually use multiple processes, so the event loop load is split
+  among multiple processes, and there is less chances that the script that is
+  issuing Web Audio API calls is delayed, allowing more tight delays for
+  scheduling things (be it an <code>AudioParam</code>, the starting an
+  <code>AudioBufferSourceNode</code>, etc.).
+
 </section>
 <section>
   <h2>Using lighter processing</h2>
