@@ -18,7 +18,7 @@ Boilerplate: omit property-index logo copyright references property-index
   available today, how to inspect their source code, and report problems found
   while testing application using the Web Audio API with them.
 
-  we’ll then have a look into the performance characteristics of the different
+  we'll then have a look into the performance characteristics of the different
   <code>AudioNode</code>s available, their performance profile, overall CPU and
   memory cost, and some strategies to use resources (CPU, memory) more
   efficiently.
@@ -26,9 +26,9 @@ Boilerplate: omit property-index logo copyright references property-index
   We'll continue by exploring the different strategies and techniques
   implementors have used when writing their implementation of the Web Audio API.
 
-  We’ll then look into ways to make processing lighter, while still retaining
+  We'll then look into ways to make processing lighter, while still retaining
   the essence of the application, for example to make a "degraded" mode for
-  mobile.  We’ll use techniques such as substituting rendering methods to trade
+  mobile.  We'll use techniques such as substituting rendering methods to trade
   fidelity against CPU load, pre-baking assets, minimizing resampling.
 
   Finally, we'll touch on tools and techniques useful to debug audio problems,
@@ -56,7 +56,7 @@ Boilerplate: omit property-index logo copyright references property-index
 
   <ul>
     <li>
-    WebKit's implementation lives at <href="XXX putthelink">THE LINK</a>, in
+    WebKit's implementation lives at <a href="XXX putthelink">THE LINK</a>, in
     at the path <code>/the/path</code>.
     </li>
     <li>
