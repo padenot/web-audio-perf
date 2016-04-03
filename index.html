@@ -13,6 +13,63 @@ body.h-entry {
 }
   </style>
   <meta content="Bikeshed 1.0.0" name="generator">
+<style>.highlight .hll { background-color: #ffffcc }
+.highlight  { background: #ffffff; }
+.highlight .c { color: #708090 } /* Comment */
+.highlight .k { color: #990055 } /* Keyword */
+.highlight .l { color: #000000 } /* Literal */
+.highlight .n { color: #0077aa } /* Name */
+.highlight .o { color: #999999 } /* Operator */
+.highlight .p { color: #999999 } /* Punctuation */
+.highlight .cm { color: #708090 } /* Comment.Multiline */
+.highlight .cp { color: #708090 } /* Comment.Preproc */
+.highlight .c1 { color: #708090 } /* Comment.Single */
+.highlight .cs { color: #708090 } /* Comment.Special */
+.highlight .kc { color: #990055 } /* Keyword.Constant */
+.highlight .kd { color: #990055 } /* Keyword.Declaration */
+.highlight .kn { color: #990055 } /* Keyword.Namespace */
+.highlight .kp { color: #990055 } /* Keyword.Pseudo */
+.highlight .kr { color: #990055 } /* Keyword.Reserved */
+.highlight .kt { color: #990055 } /* Keyword.Type */
+.highlight .ld { color: #000000 } /* Literal.Date */
+.highlight .m { color: #000000 } /* Literal.Number */
+.highlight .s { color: #a67f59 } /* Literal.String */
+.highlight .na { color: #0077aa } /* Name.Attribute */
+.highlight .nc { color: #0077aa } /* Name.Class */
+.highlight .no { color: #0077aa } /* Name.Constant */
+.highlight .nd { color: #0077aa } /* Name.Decorator */
+.highlight .ni { color: #0077aa } /* Name.Entity */
+.highlight .ne { color: #0077aa } /* Name.Exception */
+.highlight .nf { color: #0077aa } /* Name.Function */
+.highlight .nl { color: #0077aa } /* Name.Label */
+.highlight .nn { color: #0077aa } /* Name.Namespace */
+.highlight .py { color: #0077aa } /* Name.Property */
+.highlight .nt { color: #669900 } /* Name.Tag */
+.highlight .nv { color: #0077aa } /* Name.Variable */
+.highlight .ow { color: #999999 } /* Operator.Word */
+.highlight .mf { color: #000000 } /* Literal.Number.Float */
+.highlight .mh { color: #000000 } /* Literal.Number.Hex */
+.highlight .mi { color: #000000 } /* Literal.Number.Integer */
+.highlight .mo { color: #000000 } /* Literal.Number.Oct */
+.highlight .sb { color: #a67f59 } /* Literal.String.Backtick */
+.highlight .sc { color: #a67f59 } /* Literal.String.Char */
+.highlight .sd { color: #a67f59 } /* Literal.String.Doc */
+.highlight .s2 { color: #a67f59 } /* Literal.String.Double */
+.highlight .se { color: #a67f59 } /* Literal.String.Escape */
+.highlight .sh { color: #a67f59 } /* Literal.String.Heredoc */
+.highlight .si { color: #a67f59 } /* Literal.String.Interpol */
+.highlight .sx { color: #a67f59 } /* Literal.String.Other */
+.highlight .sr { color: #a67f59 } /* Literal.String.Regex */
+.highlight .s1 { color: #a67f59 } /* Literal.String.Single */
+.highlight .ss { color: #a67f59 } /* Literal.String.Symbol */
+.highlight .vc { color: #0077aa } /* Name.Variable.Class */
+.highlight .vg { color: #0077aa } /* Name.Variable.Global */
+.highlight .vi { color: #0077aa } /* Name.Variable.Instance */
+.highlight .il { color: #000000 } /* Literal.Number.Integer.Long */
+        .highlight { background: hsl(24, 20%, 95%); }
+        code.highlight { padding: .1em; border-radius: .3em; }
+        pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em 0; overflow: auto; border-radius: 0; }
+        </style>
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
@@ -41,51 +98,58 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
     <li><a href="#introduction"><span class="secno">1</span> <span class="content">Introduction</span></a>
+    <li><a href="#the-different-implementations"><span class="secno">2</span> <span class="content">The different implementations</span></a>
     <li>
-     <a href="#optimizing-web-audio-api-applications"><span class="secno">2</span> <span class="content">Optimizing Web Audio API applications</span></a>
+     <a href="#performance-analysis"><span class="secno">3</span> <span class="content">Performance analysis</span></a>
      <ol class="toc">
       <li>
-       <a href="#audionodes-characteristics"><span class="secno">2.1</span> <span class="content"><code>AudioNode</code>s characteristics</span></a>
+       <a href="#audionodes-characteristics"><span class="secno">3.1</span> <span class="content"><code>AudioNode</code>s characteristics</span></a>
        <ol class="toc">
-        <li><a href="#audiobuffersourcenode"><span class="secno">2.1.1</span> <span class="content"> AudioBufferSourceNode </span></a>
-        <li><a href="#scriptprocessornode"><span class="secno">2.1.2</span> <span class="content"> ScriptProcessorNode </span></a>
-        <li><a href="#analysernode"><span class="secno">2.1.3</span> <span class="content"> AnalyserNode </span></a>
-        <li><a href="#gainnode"><span class="secno">2.1.4</span> <span class="content"> GainNode </span></a>
-        <li><a href="#delaynode"><span class="secno">2.1.5</span> <span class="content"> DelayNode </span></a>
-        <li><a href="#biquadfilternode"><span class="secno">2.1.6</span> <span class="content"> BiquadFilterNode </span></a>
-        <li><a href="#iirfilternode"><span class="secno">2.1.7</span> <span class="content"> IIRFilterNode </span></a>
-        <li><a href="#waveshapernode"><span class="secno">2.1.8</span> <span class="content"> WaveShaperNode </span></a>
-        <li><a href="#pannernode-when-panningmodel--hrtf"><span class="secno">2.1.9</span> <span class="content"> PannerNode, when <code>panningModel == "HRTF"</code> </span></a>
-        <li><a href="#pannernode-when-panningmodel--equalpower"><span class="secno">2.1.10</span> <span class="content"> PannerNode, when <code>panningModel == "equalpower"</code> </span></a>
-        <li><a href="#stereopannernode"><span class="secno">2.1.11</span> <span class="content"> StereoPannerNode </span></a>
-        <li><a href="#convolvernode"><span class="secno">2.1.12</span> <span class="content"> ConvolverNode </span></a>
-        <li><a href="#channelsplitternode-channelmergernode"><span class="secno">2.1.13</span> <span class="content"> ChannelSplitterNode / ChannelMergerNode </span></a>
-        <li><a href="#dynamicscompressornode"><span class="secno">2.1.14</span> <span class="content"> DynamicsCompressorNode </span></a>
-        <li><a href="#oscillatornode"><span class="secno">2.1.15</span> <span class="content"> OscillatorNode </span></a>
+        <li><a href="#audiobuffersourcenode"><span class="secno">3.1.1</span> <span class="content"> AudioBufferSourceNode </span></a>
+        <li><a href="#scriptprocessornode"><span class="secno">3.1.2</span> <span class="content"> ScriptProcessorNode </span></a>
+        <li><a href="#analysernode"><span class="secno">3.1.3</span> <span class="content"> AnalyserNode </span></a>
+        <li><a href="#gainnode"><span class="secno">3.1.4</span> <span class="content"> GainNode </span></a>
+        <li><a href="#delaynode"><span class="secno">3.1.5</span> <span class="content"> DelayNode </span></a>
+        <li><a href="#biquadfilternode"><span class="secno">3.1.6</span> <span class="content"> BiquadFilterNode </span></a>
+        <li><a href="#iirfilternode"><span class="secno">3.1.7</span> <span class="content"> IIRFilterNode </span></a>
+        <li><a href="#waveshapernode"><span class="secno">3.1.8</span> <span class="content"> WaveShaperNode </span></a>
+        <li><a href="#pannernode-when-panningmodel--hrtf"><span class="secno">3.1.9</span> <span class="content"> PannerNode, when <code>panningModel == "HRTF"</code> </span></a>
+        <li><a href="#pannernode-when-panningmodel--equalpower"><span class="secno">3.1.10</span> <span class="content"> PannerNode, when <code>panningModel == "equalpower"</code> </span></a>
+        <li><a href="#stereopannernode"><span class="secno">3.1.11</span> <span class="content"> StereoPannerNode </span></a>
+        <li><a href="#convolvernode"><span class="secno">3.1.12</span> <span class="content"> ConvolverNode </span></a>
+        <li><a href="#channelsplitternode-channelmergernode"><span class="secno">3.1.13</span> <span class="content"> ChannelSplitterNode / ChannelMergerNode </span></a>
+        <li><a href="#dynamicscompressornode"><span class="secno">3.1.14</span> <span class="content"> DynamicsCompressorNode </span></a>
+        <li><a href="#oscillatornode"><span class="secno">3.1.15</span> <span class="content"> OscillatorNode </span></a>
        </ol>
       <li>
-       <a href="#other-noteworthy-performance-characteristics"><span class="secno">2.2</span> <span class="content"> Other noteworthy performance characteristics </span></a>
+       <a href="#other-noteworthy-performance-characteristics"><span class="secno">3.2</span> <span class="content"> Other noteworthy performance characteristics </span></a>
        <ol class="toc">
-        <li><a href="#memory-model"><span class="secno">2.2.1</span> <span class="content"> Memory model </span></a>
-        <li><a href="#audioparam"><span class="secno">2.2.2</span> <span class="content"> AudioParam </span></a>
-        <li><a href="#node-ordering"><span class="secno">2.2.3</span> <span class="content"> Node ordering </span></a>
-        <li><a href="#latency"><span class="secno">2.2.4</span> <span class="content"> Latency </span></a>
-        <li><a href="#browser-architecture"><span class="secno">2.2.5</span> <span class="content"> Browser architecture </span></a>
+        <li><a href="#memory-model"><span class="secno">3.2.1</span> <span class="content"> Memory model </span></a>
+        <li><a href="#audioparam"><span class="secno">3.2.2</span> <span class="content"> AudioParam </span></a>
+        <li><a href="#node-ordering"><span class="secno">3.2.3</span> <span class="content"> Node ordering </span></a>
+        <li><a href="#latency"><span class="secno">3.2.4</span> <span class="content"> Latency </span></a>
+        <li><a href="#browser-architecture"><span class="secno">3.2.5</span> <span class="content"> Browser architecture </span></a>
+        <li><a href="#decodeaudiodata"><span class="secno">3.2.6</span> <span class="content"><code>decodeAudioData</code></span></a>
+        <li><a href="#micro-optimizations"><span class="secno">3.2.7</span> <span class="content">Micro-optimizations</span></a>
        </ol>
      </ol>
     <li>
-     <a href="#using-lighter-processing"><span class="secno">3</span> <span class="content">Using lighter processing</span></a>
+     <a href="#using-lighter-processing"><span class="secno">4</span> <span class="content">Using lighter processing</span></a>
      <ol class="toc">
-      <li><a href="#built-in-resampling"><span class="secno">3.1</span> <span class="content">Built-in resampling</span></a>
-      <li><a href="#asset-pre-baking"><span class="secno">3.2</span> <span class="content">Asset pre-baking</span></a>
-      <li><a href="#cheaper-reverb"><span class="secno">3.3</span> <span class="content">Cheaper reverb</span></a>
-      <li><a href="#cheaper-panning"><span class="secno">3.4</span> <span class="content">Cheaper panning</span></a>
+      <li><a href="#custom-processing"><span class="secno">4.1</span> <span class="content">Custom processing</span></a>
+      <li><a href="#worker-based-custom-processing"><span class="secno">4.2</span> <span class="content">Worker-based custom processing</span></a>
+      <li><a href="#copying-audio-data"><span class="secno">4.3</span> <span class="content">Copying audio data</span></a>
+      <li><a href="#built-in-resampling"><span class="secno">4.4</span> <span class="content">Built-in resampling</span></a>
+      <li><a href="#track-or-asset-freezing"><span class="secno">4.5</span> <span class="content">Track or asset freezing</span></a>
+      <li><a href="#cheaper-reverb"><span class="secno">4.6</span> <span class="content">Cheaper reverb</span></a>
+      <li><a href="#cheaper-panning"><span class="secno">4.7</span> <span class="content">Cheaper panning</span></a>
      </ol>
     <li>
-     <a href="#debugging-web-audio-api-applications"><span class="secno">4</span> <span class="content">Debugging Web Audio API applications</span></a>
+     <a href="#debugging-web-audio-api-applications"><span class="secno">5</span> <span class="content">Debugging Web Audio API applications</span></a>
      <ol class="toc">
-      <li><a href="#node-wrapping"><span class="secno">4.1</span> <span class="content">Node Wrapping</span></a>
-      <li><a href="#firefox-web-audio-api-debugger"><span class="secno">4.2</span> <span class="content">Firefox' Web Audio API debugger</span></a>
+      <li><a href="#node-wrapping"><span class="secno">5.1</span> <span class="content">Node Wrapping</span></a>
+      <li><a href="#firefox-web-audio-api-debugger"><span class="secno">5.2</span> <span class="content">Firefox' Web Audio API debugger</span></a>
+      <li><a href="#memory-profiling"><span class="secno">5.3</span> <span class="content">Memory profiling</span></a>
      </ol>
     <li><a href="#references"><span class="secno"></span> <span class="content">References</span></a>
    </ol>
@@ -95,22 +159,61 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
     <h2 class="heading settled" data-level="1" id="introduction"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#introduction"></a></h2>
      In this tutorial, we will look at two different aspects of working with the Web
   Audio API. 
-    <p>First, we’ll have a look into the performance characteristics of the different <code>AudioNode</code>s available, their performance profile, overall CPU and memory cost,
-  and strategies to use resources (CPU, memory) more efficiently. For example,
-  we’ll learn how to look into the source code of different implementations, and
-  determine the algorithm and techniques used in each browser, to make better
-  choices when developing applications.</p>
-    <p>We’ll then look into ways to make processing lighter, while still retaining the
-  essence of the application, for example to make a "degraded" mode for mobile.
-  We’ll use techniques such as substituting rendering methods to trade fidelity
-  against CPU load, pre-baking assets, minimizing resampling.</p>
-    <p>Throughout the workshop, we’ll use tools and techniques to debug audio problems,
-  both using in-browser tools, or JavaScript code designed to inspect static and
-  dynamic audio graphs and related Web Audio API objects.</p>
+    <p>First, we’ll have a look at the different implementations implementations
+  available today, how to inspect their source code, and report problems found
+  while testing application using the Web Audio API with them.</p>
+    <p>we’ll then have a look into the performance characteristics of the different <code>AudioNode</code>s available, their performance profile, overall CPU and
+  memory cost, and some strategies to use resources (CPU, memory) more
+  efficiently.</p>
+    <p>We’ll continue by exploring the different strategies and techniques
+  implementors have used when writing their implementation of the Web Audio API.</p>
+    <p>We’ll then look into ways to make processing lighter, while still retaining
+  the essence of the application, for example to make a "degraded" mode for
+  mobile.  We’ll use techniques such as substituting rendering methods to trade
+  fidelity against CPU load, pre-baking assets, minimizing resampling.</p>
+    <p>Finally, we’ll touch on tools and techniques useful to debug audio problems,
+  both using the browser developer tools, or JavaScript code designed to inspect
+  static and dynamic audio graphs and related Web Audio API objects.</p>
    </section>
    <section>
-    <h2 class="heading settled" data-level="2" id="optimizing-web-audio-api-applications"><span class="secno">2. </span><span class="content">Optimizing Web Audio API applications</span><a class="self-link" href="#optimizing-web-audio-api-applications"></a></h2>
-    <h3 class="heading settled" data-level="2.1" id="audionodes-characteristics"><span class="secno">2.1. </span><span class="content"><code>AudioNode</code>s characteristics</span><a class="self-link" href="#audionodes-characteristics"></a></h3>
+    <h2 class="heading settled" data-level="2" id="the-different-implementations"><span class="secno">2. </span><span class="content">The different implementations</span><a class="self-link" href="#the-different-implementations"></a></h2>
+    <p>Four complete (if there is such thing, considering the standard is always
+  evolving) Web Audio API are available as of today in browsers:</p>
+    <ul>
+     <li>The first ever implementation was part of WebKit. At the time, Chrome
+    and Safari were sharing the same code.
+     <li>Then, Blink got forked from WebKit, and the two gradually diverged. They
+    share a lot of code, but can be considered separate implementations.
+     <li>Gecko was the second implementation, mostly from scratch, but borrowing
+    a few files from the Blink fork, for some processing code.
+     <li>Edge’s source are not available.
+    </ul>
+    <p>The source code from the first three implementations can be read, compiled and
+  modified, here are the relevant locations:</p>
+    <ul>
+     <li>
+       WebKit’s implementation lives at 
+      <hrefU0003DU00022xxx putthelinkU00022="">THE LINK, in
+    at the path <code>/the/path</code>. </hrefU0003DU00022xxx>
+     <li> Blink’s implementation can be found at <a href="https://code.google.com/p/chromium/codesearch#chromium/src/"> https://code.google.com/p/chromium/codesearch#chromium/src/</a> which is a handy web interface, with cross-referencing of symbols. The Web
+    Audio API implementation lives at <code>third_party/WebKit/Source/modules/webaudio</code>, but a number of
+    classes and functions, intended to be shared among different Chromium modules
+    are located at <code>./third_party/WebKit/Source/platform/audio/</code>. 
+     <li> Gecko’s implementation can be found at <a href="https://dxr.mozilla.org/mozilla-central"> https://dxr.mozilla.org/mozilla-central</a>, which is also a nice web
+    interface with cross-referencing of symbols,
+    and the Web Audio API implementation is located in <code>dom/media/webaudio</code>. Some shared components are in <code>dom/media</code>. 
+    </ul>
+    <p>Issues (about performance or correctness) can be filed in the project’s bug
+  tracker:</p>
+    <ul>
+     <li>WebKit: <a href="XXX">XXX</a>
+     <li>Blink: <a href="https://new.crbug.com/">https://new.crbug.com/</a>
+     <li>Gecko: <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=Web%20Audio">https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=Web%20Audio</a>
+    </ul>
+    <p>When filing issues, a minimal test case reproducing the issue is very welcome,
+  as is a benchmark in case of performance problems.</p>
+    <h2 class="heading settled" data-level="3" id="performance-analysis"><span class="secno">3. </span><span class="content">Performance analysis</span><a class="self-link" href="#performance-analysis"></a></h2>
+    <h3 class="heading settled" data-level="3.1" id="audionodes-characteristics"><span class="secno">3.1. </span><span class="content"><code>AudioNode</code>s characteristics</span><a class="self-link" href="#audionodes-characteristics"></a></h3>
      This section explains the characteristics of each of the <code>AudioNode</code> that are available in the Web Audio API, from four
   angles. 
     <ul>
@@ -123,7 +226,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   input is continuously silent (for example because the audio source has
   stopped). If this section is not present, the node does not have a tail. 
     </ul>
-    <h4 class="heading settled" data-level="2.1.1" id="audiobuffersourcenode"><span class="secno">2.1.1. </span><span class="content"> AudioBufferSourceNode </span><a class="self-link" href="#audiobuffersourcenode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.1" id="audiobuffersourcenode"><span class="secno">3.1.1. </span><span class="content"> AudioBufferSourceNode </span><a class="self-link" href="#audiobuffersourcenode"></a></h4>
     <dl>
      <dt>CPU
      <dd>The <code>AudioBufferSourceNode</code> automatically resamples its <code>buffer</code> attribute to the sample-rate of the <code>AudioContext</code>. Resampling is
@@ -135,7 +238,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>The <code>AudioBufferSourceNode</code> reads sample from an <code>AudioBuffer</code> that can be shared between multiple nodes. The
     resampler used in Gecko uses some memory for the filter, but nothing major.
     </dl>
-    <h4 class="heading settled" data-level="2.1.2" id="scriptprocessornode"><span class="secno">2.1.2. </span><span class="content"> ScriptProcessorNode </span><a class="self-link" href="#scriptprocessornode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.2" id="scriptprocessornode"><span class="secno">3.1.2. </span><span class="content"> ScriptProcessorNode </span><a class="self-link" href="#scriptprocessornode"></a></h4>
     <dl>
      <dt>CPU
      <dd>On Gecko-based browsers, this node uses a message queue to send buffers
@@ -152,7 +255,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
     keeping up, the latency will increase, up to a point where audio will start
     to drop.
     </dl>
-    <h4 class="heading settled" data-level="2.1.3" id="analysernode"><span class="secno">2.1.3. </span><span class="content"> AnalyserNode </span><a class="self-link" href="#analysernode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.3" id="analysernode"><span class="secno">3.1.3. </span><span class="content"> AnalyserNode </span><a class="self-link" href="#analysernode"></a></h4>
     <dl>
      <dt>CPU
      <dd>This node can give frequency domain data, using a Fast Fourier Transform
@@ -163,7 +266,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dt>Memory
      <dd>Fast Fourier Transform algorithms use internal memory for processing.
   Different platforms and browsers have different algorithms, so it’s hard to
-  quantify exactly how much memory is going to be used. Additionally, some
+  quantify exactly how much memory is going to be used. Additionaly, some
   memory is going to be used for the <code>AudioBuffer</code> passed in to the
   analysis methods. 
      <dt>Latency
@@ -173,7 +276,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>Because of the windowing function there can be a tail with
   this node, but windowing can be disabled by setting it to 0.
     </dl>
-    <h4 class="heading settled" data-level="2.1.4" id="gainnode"><span class="secno">2.1.4. </span><span class="content"> GainNode </span><a class="self-link" href="#gainnode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.4" id="gainnode"><span class="secno">3.1.4. </span><span class="content"> GainNode </span><a class="self-link" href="#gainnode"></a></h4>
     <dl>
      <dt>CPU
      <dd>Gecko-based browsers, the gain is always applied lazily, and folded in
@@ -186,7 +289,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>A <code>GainNode</code> is stateless and has therefore no associated
     memory cost.
     </dl>
-    <h4 class="heading settled" data-level="2.1.5" id="delaynode"><span class="secno">2.1.5. </span><span class="content"> DelayNode </span><a class="self-link" href="#delaynode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.5" id="delaynode"><span class="secno">3.1.5. </span><span class="content"> DelayNode </span><a class="self-link" href="#delaynode"></a></h4>
     <dl>
      <dt>CPU
      <dd>This node essentially copies input data into a buffer, and reads from this
@@ -201,7 +304,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>This node is being kept around (not collected) until it has finished
     reading and has output all of its internal buffer.
     </dl>
-    <h4 class="heading settled" data-level="2.1.6" id="biquadfilternode"><span class="secno">2.1.6. </span><span class="content"> BiquadFilterNode </span><a class="self-link" href="#biquadfilternode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.6" id="biquadfilternode"><span class="secno">3.1.6. </span><span class="content"> BiquadFilterNode </span><a class="self-link" href="#biquadfilternode"></a></h4>
     <dl>
      <dt>CPU
      <dd>Biquad filters are relatively cheap (five multiplication and four
@@ -214,7 +317,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>Variable tail, depending on the filter setting (in particular the
   resonance).
     </dl>
-    <h4 class="heading settled" data-level="2.1.7" id="iirfilternode"><span class="secno">2.1.7. </span><span class="content"> IIRFilterNode </span><a class="self-link" href="#iirfilternode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.7" id="iirfilternode"><span class="secno">3.1.7. </span><span class="content"> IIRFilterNode </span><a class="self-link" href="#iirfilternode"></a></h4>
     <dl>
      <dt>CPU
      <dd>Similarly to the biquad filter, they are rather cheap. The complexity
@@ -227,7 +330,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dt>Tail
      <dd>Variable, depending on the value of the coefficients.
     </dl>
-    <h4 class="heading settled" data-level="2.1.8" id="waveshapernode"><span class="secno">2.1.8. </span><span class="content"> WaveShaperNode </span><a class="self-link" href="#waveshapernode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.8" id="waveshapernode"><span class="secno">3.1.8. </span><span class="content"> WaveShaperNode </span><a class="self-link" href="#waveshapernode"></a></h4>
     <dl>
      <dt>CPU
      <dd>The computational complexity depends on the oversampling. If no
@@ -246,7 +349,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>Similarly, depending on the resampling technique used, and when using
   over-sampling, a tail can be present.
     </dl>
-    <h4 class="heading settled" data-level="2.1.9" id="pannernode-when-panningmodel--hrtf"><span class="secno">2.1.9. </span><span class="content"> PannerNode, when <code>panningModel == "HRTF"</code> </span><a class="self-link" href="#pannernode-when-panningmodel--hrtf"></a></h4>
+    <h4 class="heading settled" data-level="3.1.9" id="pannernode-when-panningmodel--hrtf"><span class="secno">3.1.9. </span><span class="content"> PannerNode, when <code>panningModel == "HRTF"</code> </span><a class="self-link" href="#pannernode-when-panningmodel--hrtf"></a></h4>
     <dl>
      <dt>CPU
      <dd><strong>Very</strong> expensive. This node is constantly doing
@@ -268,7 +371,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>Similarly, depending on the azimuth and elevation, a tail of different
     duration is present.
     </dl>
-    <h4 class="heading settled" data-level="2.1.10" id="pannernode-when-panningmodel--equalpower"><span class="secno">2.1.10. </span><span class="content"> PannerNode, when <code>panningModel == "equalpower"</code> </span><a class="self-link" href="#pannernode-when-panningmodel--equalpower"></a></h4>
+    <h4 class="heading settled" data-level="3.1.10" id="pannernode-when-panningmodel--equalpower"><span class="secno">3.1.10. </span><span class="content"> PannerNode, when <code>panningModel == "equalpower"</code> </span><a class="self-link" href="#pannernode-when-panningmodel--equalpower"></a></h4>
     <dl>
      <dt>CPU
      <dd>
@@ -283,7 +386,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dt>Memory
      <dd>The processing being stateless, this has no memory cost.
     </dl>
-    <h4 class="heading settled" data-level="2.1.11" id="stereopannernode"><span class="secno">2.1.11. </span><span class="content"> StereoPannerNode </span><a class="self-link" href="#stereopannernode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.11" id="stereopannernode"><span class="secno">3.1.11. </span><span class="content"> StereoPannerNode </span><a class="self-link" href="#stereopannernode"></a></h4>
     <dl>
      <dt>CPU
      <dd>Similar to the <code>"equalpower"</code> panning, but the azimuth is
@@ -292,7 +395,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dt>Memory
      <dd>Stateless processing, no memory cost.
     </dl>
-    <h4 class="heading settled" data-level="2.1.12" id="convolvernode"><span class="secno">2.1.12. </span><span class="content"> ConvolverNode </span><a class="self-link" href="#convolvernode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.12" id="convolvernode"><span class="secno">3.1.12. </span><span class="content"> ConvolverNode </span><a class="self-link" href="#convolvernode"></a></h4>
     <dl>
      <dt>CPU
      <dd>Very expensive, and depending on the duration of the convolution
@@ -310,7 +413,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dt>Tail
      <dd>Depending on the convolution impulse, there can be a tail.
     </dl>
-    <h4 class="heading settled" data-level="2.1.13" id="channelsplitternode-channelmergernode"><span class="secno">2.1.13. </span><span class="content"> ChannelSplitterNode / ChannelMergerNode </span><a class="self-link" href="#channelsplitternode-channelmergernode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.13" id="channelsplitternode-channelmergernode"><span class="secno">3.1.13. </span><span class="content"> ChannelSplitterNode / ChannelMergerNode </span><a class="self-link" href="#channelsplitternode-channelmergernode"></a></h4>
     <dl>
      <dt>CPU
      <dd>This is merely splitting or merging channels, that is copying buffer
@@ -318,7 +421,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dt>Memory
      <dd>No memory implications
     </dl>
-    <h4 class="heading settled" data-level="2.1.14" id="dynamicscompressornode"><span class="secno">2.1.14. </span><span class="content"> DynamicsCompressorNode </span><a class="self-link" href="#dynamicscompressornode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.14" id="dynamicscompressornode"><span class="secno">3.1.14. </span><span class="content"> DynamicsCompressorNode </span><a class="self-link" href="#dynamicscompressornode"></a></h4>
     <dl>
      <dt>CPU
      <dd>The exact algorithm is not specified yet. In practice, it’s the same in
@@ -333,7 +436,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
      <dd>Because of the emphasis, there is a tail. Also, compression can boost
     quiet audio, so audible sound can appear to last longer.
     </dl>
-    <h4 class="heading settled" data-level="2.1.15" id="oscillatornode"><span class="secno">2.1.15. </span><span class="content"> OscillatorNode </span><a class="self-link" href="#oscillatornode"></a></h4>
+    <h4 class="heading settled" data-level="3.1.15" id="oscillatornode"><span class="secno">3.1.15. </span><span class="content"> OscillatorNode </span><a class="self-link" href="#oscillatornode"></a></h4>
     <dl>
      <dt>CPU
      <dd>The basic wave forms are implemented using multiple wave tables computed
@@ -348,8 +451,8 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
     Those are shared in Gecko-based browsers, apart from the sine wave in Gecko,
     that is directly computed.
     </dl>
-    <h3 class="heading settled" data-level="2.2" id="other-noteworthy-performance-characteristics"><span class="secno">2.2. </span><span class="content"> Other noteworthy performance characteristics </span><a class="self-link" href="#other-noteworthy-performance-characteristics"></a></h3>
-    <h4 class="heading settled" data-level="2.2.1" id="memory-model"><span class="secno">2.2.1. </span><span class="content"> Memory model </span><a class="self-link" href="#memory-model"></a></h4>
+    <h3 class="heading settled" data-level="3.2" id="other-noteworthy-performance-characteristics"><span class="secno">3.2. </span><span class="content"> Other noteworthy performance characteristics </span><a class="self-link" href="#other-noteworthy-performance-characteristics"></a></h3>
+    <h4 class="heading settled" data-level="3.2.1" id="memory-model"><span class="secno">3.2.1. </span><span class="content"> Memory model </span><a class="self-link" href="#memory-model"></a></h4>
     <p>Web Audio API implementation use two threads. The <em>control thread</em> is
   the thread on which are issued the Web Audio API calls: <code>createGain</code>, <code>setTargetAtTime</code>, etc. The <em>rendering
   thread</em> is the thread that is responsible for rendering the audio. This
@@ -379,7 +482,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   data structure sent to the rendering thread, from the main thread. Gecko-based
   browsers keep two synchronized copies of the data structure to implement this,
   this has a cost in memory, that other engines don’t have to pay.</p>
-    <h4 class="heading settled" data-level="2.2.2" id="audioparam"><span class="secno">2.2.2. </span><span class="content"> AudioParam </span><a class="self-link" href="#audioparam"></a></h4>
+    <h4 class="heading settled" data-level="3.2.2" id="audioparam"><span class="secno">3.2.2. </span><span class="content"> AudioParam </span><a class="self-link" href="#audioparam"></a></h4>
      The way a web application uses <code>AudioParam</code> plays an important role
   in the performance of the application. <code>AudioParam</code> come in two
   flavours, <em>a-rate</em> and <em>k-rate</em> parameters. <em>a-rate</em> parameters have their value computed for each audio sample, whereas <em>k-rate</em> parameters are computed once per 128 frames block. 
@@ -427,13 +530,13 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   at computing automation curves, it is event more efficient to not use <code>AudioParam</code> if not necessary, implementation often take different
   code path if they know an <code>AudioParam</code> value is going to be
   constant for a block, and this is easier to detect if the <code>value</code> attribute has been directly set.</p>
-    <h4 class="heading settled" data-level="2.2.3" id="node-ordering"><span class="secno">2.2.3. </span><span class="content"> Node ordering </span><a class="self-link" href="#node-ordering"></a></h4>
+    <h4 class="heading settled" data-level="3.2.3" id="node-ordering"><span class="secno">3.2.3. </span><span class="content"> Node ordering </span><a class="self-link" href="#node-ordering"></a></h4>
     <p>Audio nodes have to be processed in a specific order to get correct results.
   For example, considering a graph with an <code>AudioBufferSourceNode</code> connected to a <code>GainNode</code>, connected to the <code>AudioDestinationNode</code>. The <code>AudioBufferSourceNode</code> has
   to be processed first, it gets
   the values from the <code>AudioBuffer</code> and maybe resamples them.
   The output of this node is passed to the <code>GainNode</code>, that applies
-  its own processing, passing down the computed data to the <code>AudioDestinatinoNode</code>.</p>
+  its own processing, passing down the computed data to the <code>AudioDestinationNode</code>.</p>
     <p>Gecko-based browsers and other engines have taken two different approaches for
   ordering Web Audio API graphs.</p>
     <p>Gecko uses an algorithm based on Tim Leslie’s iterative implementation
@@ -450,19 +553,19 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   while other engine perform the traversal for each rendering quantum. Depending
   on if the application has a mostly static or very dynamic graph topology, this
   can have an impact on performance.</p>
-    <h4 class="heading settled" data-level="2.2.4" id="latency"><span class="secno">2.2.4. </span><span class="content"> Latency </span><a class="self-link" href="#latency"></a></h4>
+    <h4 class="heading settled" data-level="3.2.4" id="latency"><span class="secno">3.2.4. </span><span class="content"> Latency </span><a class="self-link" href="#latency"></a></h4>
     <p>Audio output latency is very important for the Web Audio API. Usually,
   implementations use the lowest available audio latency on the system to run
   the <em>rendering thread</em>. Roughly, this mean on the order of 10ms on
   Windows (post-Vista, using WASAPI), very very low on OSX and iOS (a few
   milliseconds), a 30-40ms on Linux/PulseAudio. There are not yet engines that
-  support Jack with low-latency code, altough this would certainly have amazing
+  support Jack with low-latency code, although this would certainly have amazing
   latency numbers.  Windows XP does not usually have great output latency, and
   licensing terms (and available time to write code!) prevent the use of ASIO on
   Windows, which would also have great performance.</p>
     <p>Android devices are a bit of a problem, as the latency can vary between 12.5ms
   on a Galaxy Nexus (which was the device with the lowest latency) up to 150ms
-  on some very cheap devices. Altough there is a way to know the latency using
+  on some very cheap devices. Although there is a way to know the latency using
   system API (that browsers use for audio/video synchronization), Web App
   authors don’t currently have a way to know the output latency. This is
   currently being addressed (XXX GitHub issue/PR/Spec here).</p>
@@ -470,7 +573,7 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   currently under discussion (XXX GitHub issue/PR/Spec here). This allows a
   number of things, such as battery savings for use-cases that don’t require
   very low latency. For example, an application that only does playback, but
-  wants to display the Fourier tranform of the signal, or simply the wave form
+  wants to display the Fourier transform of the signal, or simply the wave form
   of the signal itself, have an equalizer on the signal path, apply compression,
   all would benefit from this feature, because real-time interaction is not
   required. Of course, the latency that is the most efficient, battery-wise and
@@ -483,14 +586,14 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   it audio sample data, automation timeline event arrays, the memory for the
   nodes themselves, etc.). Rendering for a longer period of time means having
   caches that are more hot and lets the CPU crunching numbers without having to
-  wait for memory faults. DAW users often increase the latency when they heard
-  "audio crackles" (under-runs), the same logic applies here. Of course, there
-  is a point where having a higher latency is actually not helping the
-  computation, which depends on all systems.</p>
-    <h4 class="heading settled" data-level="2.2.5" id="browser-architecture"><span class="secno">2.2.5. </span><span class="content"> Browser architecture </span><a class="self-link" href="#browser-architecture"></a></h4>
+  wait for memory faults. Digital Audio Workstation users often increase the
+  latency when they heard "audio crackles" (under-runs), the same logic applies
+  here. Of course, there is a point where having a higher latency is actually
+  not helping the computation. This value depends on the system.</p>
+    <h4 class="heading settled" data-level="3.2.5" id="browser-architecture"><span class="secno">3.2.5. </span><span class="content"> Browser architecture </span><a class="self-link" href="#browser-architecture"></a></h4>
     <p>Firefox (that is based on Gecko) uses only one process for all the tabs and
   the chrome (which is the user interface of the browser, that is, the tabs, the
-  menus, etc., a very confusing term nowadays), whereare other browsers use
+  menus, etc., a very confusing term nowadays), whereas other browsers use
   multiple processes.</p>
     <p>While the rendering of Web Audio API graphs happen on dedicated thread, this
   has important implications in terms of responsiveness. The event loop is Gecko
@@ -505,18 +608,152 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   among multiple processes, and there is less chances that the script that is
   issuing Web Audio API calls is delayed, allowing more tight delays for
   scheduling things (be it an <code>AudioParam</code>, the starting an <code>AudioBufferSourceNode</code>, etc.).</p>
+    <h4 class="heading settled" data-level="3.2.6" id="decodeaudiodata"><span class="secno">3.2.6. </span><span class="content"><code>decodeAudioData</code></span><a class="self-link" href="#decodeaudiodata"></a></h4>
+    <p>Gecko based browsers use a thread pool (with multiple threads) when handling
+  multiple <code>decodeAudioData</code> calls, whereas other browsers serialize
+  the decoding on a thread.</p>
+    <p>Additionaly, audio is resampled differently, and different audio decoders are
+  used, with different optimizations on different OS and architectures, leading
+  to a wide variety of performance profiles.</p>
+    <p>Authors should take advantage of (nowadays ubiquitous) multi-core machines
+  (even phones often have four or more core these days), and try to saturate the
+  CPUs with decoding operations. Since the rendering thread is higher priority
+  than the decoding threads, no audio under-runs are to be expected.</p>
+    <h4 class="heading settled" data-level="3.2.7" id="micro-optimizations"><span class="secno">3.2.7. </span><span class="content">Micro-optimizations</span><a class="self-link" href="#micro-optimizations"></a></h4>
+    <p>Audio processing is composed of a lot of very tight loops, repeating a
+  particular operation over and over on audio buffers.
+  Implementations take advantage of SIMD (Single Instruction Multiple Data)
+  available in CPUs, and optimize certain very common operation after profiling,
+  to make processing go faster, in order to render have bigger graphs, allow
+  lower audio latency.</p>
+    <p>Gecko has NEON (on ARM) and SSE (on x86) function implementing all the very
+  common functions (Applying a gain in place, copying a buffer while applying a
+  gain value, panning a mono buffer to a stereo position, etc.), as well as
+  optimized FFT code (taken from the FFMPEG project on x86, and OpenMax DL
+  routines on ARM). Of course, these optimizations are only used if the CPU on
+  which the browser is running has the necessary extensions, falling back to
+  normal scalar code if not. Depending on the function, those optimizations have
+  proven to be between three and sixteen times faster than their scalar
+  counterpart.</p>
+    <p>Blink has SSE code for some <code>AudioParam</code> event handling, and has
+  the same FFT code as Gecko (both on x86 and ARM).</p>
+    <p>WebKit can use different FFT implementation, depending on the platform, for
+  example the FFT from the <em>Accelerate</em> framework on OSX.</p>
+    <p>This results in a variety of performance profiles for FFT-based processing
+  (HRTF panner, <code>ConvolverNode</code>, <code>AnalyserNode</code>, etc.).</p>
+    <p>Additionaly, very often, the decoding code used by the implementation of <code>decodeAudioData</code> are very well optimized using SIMD and a variety
+  of other techniques.</p>
    </section>
    <section>
-    <h2 class="heading settled" data-level="3" id="using-lighter-processing"><span class="secno">3. </span><span class="content">Using lighter processing</span><a class="self-link" href="#using-lighter-processing"></a></h2>
-    <h3 class="heading settled" data-level="3.1" id="built-in-resampling"><span class="secno">3.1. </span><span class="content">Built-in resampling</span><a class="self-link" href="#built-in-resampling"></a></h3>
-    <h3 class="heading settled" data-level="3.2" id="asset-pre-baking"><span class="secno">3.2. </span><span class="content">Asset pre-baking</span><a class="self-link" href="#asset-pre-baking"></a></h3>
-    <h3 class="heading settled" data-level="3.3" id="cheaper-reverb"><span class="secno">3.3. </span><span class="content">Cheaper reverb</span><a class="self-link" href="#cheaper-reverb"></a></h3>
-    <h3 class="heading settled" data-level="3.4" id="cheaper-panning"><span class="secno">3.4. </span><span class="content">Cheaper panning</span><a class="self-link" href="#cheaper-panning"></a></h3>
+    <h2 class="heading settled" data-level="4" id="using-lighter-processing"><span class="secno">4. </span><span class="content">Using lighter processing</span><a class="self-link" href="#using-lighter-processing"></a></h2>
+    <p>Audio processing is a hard real-time process. If the audio has no been
+  computed when the system is about to output it, drop outs will occur, in the
+  form of clicks, silence, noise and other unpleasant sounds.</p>
+    <p>Web Browsers run a variety of platform and devices, some of them being very
+  powerful, and some of them with limited resources. To ensure a smooth
+  experiences for all users and depending on the application itself, it can be
+  necessary to use techniques that does not sound as good as the normal
+  technique, but still allow to have a convincing experience, retaining the
+  essence of the interaction.</p>
+    <h3 class="heading settled" data-level="4.1" id="custom-processing"><span class="secno">4.1. </span><span class="content">Custom processing</span><a class="self-link" href="#custom-processing"></a></h3>
+    <p>Sometimes, the Web Audio API falls short in what it has to offer, to solve
+  particular problems. It can be necessary to use an <code>AudioWorklet</code> or a <code>ScriptProcessorNode</code> to implement custom processing.</p>
+    <p>JavaScript is a very fast language is written properly, but there are a number
+  of rules to obey to achieve this result.</p>
+    <ul>
+     <li> Using typed array is a must. They are very fast compared to the normal
+    array. In the Web Audio API, the <code>Float32Array</code> is the most
+    common. Re-using arrays is important, there is no need to spend a lot of
+    time in the allocator code. 
+     <li> Keeping the working set small is important, not using a lot of arrays and
+    always using the same data is faster. 
+     <li> No DOM manipulation or fiddling with the prototype of object during
+    processing as this invalidates the JITed code. 
+     <li> Trying to stay as mono-morphic as possible and always using the same code
+    path yields more optimized JITed code. Suddenly calling a function with
+    a normal array instead of a <code>Float32Array</code> will invalidate a lot
+    of code and take a slow path. 
+     <li> Compiling C or C++ to JavaScript (or soon Web Assembly) yields the best
+    performance. <em>emscripten</em> or other tools can be used to compile
+    libraries or custom code into a typed subset of JavaScript that does not
+    allocate and is very fast at number crunching. 
+     <li> Experimental extensions, such as <code>SIMD.js</code> or <code>SharedArrayBuffer</code> can make things run faster, but they are not
+    available in all browsers. 
+    </ul>
+    <h3 class="heading settled" data-level="4.2" id="worker-based-custom-processing"><span class="secno">4.2. </span><span class="content">Worker-based custom processing</span><a class="self-link" href="#worker-based-custom-processing"></a></h3>
+    <p>All of the above techniques can be used with workers, to offload heavy
+  processing. While the worker does not have access to the Web Audio API,
+  buffers can be transfered without copy, and the audio can then be sent back to
+  the main thread for use with the Web Audio API.</p>
+    <p>This has latency implications, and care must be taken so that the worker
+  always has finished processing on time, generally using a FIFO.</p>
+    <h3 class="heading settled" data-level="4.3" id="copying-audio-data"><span class="secno">4.3. </span><span class="content">Copying audio data</span><a class="self-link" href="#copying-audio-data"></a></h3>
+    <p>Reusing <code>AudioBuffer</code> internal data can be performed more
+  efficiently than with calling <code>getChannelData()</code>. <code>copyFromChannel()</code> and <code>copyToChannel()</code> allow the
+  engine to to optimize away some copies and allocations.</p>
+    <h3 class="heading settled" data-level="4.4" id="built-in-resampling"><span class="secno">4.4. </span><span class="content">Built-in resampling</span><a class="self-link" href="#built-in-resampling"></a></h3>
+    <p>The <code>OfflineAudioContext</code> can be use to perform off-main-thread and
+  off-rendering-thread re-resampling of audio buffer. This can have two
+  different uses:</p>
+    <ul>
+     <li> By resampling an <code>AudioBuffer</code> to the sample-rate of the <code>AudioContext</code>, no time is spent resampling in the <code>AudioBufferSourceNode</code>. 
+     <li> By resampling an <code>AudioBuffer</code> to a low sample rate, memory can
+    be saved. This has sound quality and CPU implications, but not all sounds
+    have partials that are high enough to require a full-band rate. 
+    </ul>
+<pre class="highlight"><span class="kd">function</span> <span class="nx">resample</span><span class="p">(</span><span class="nx">input</span><span class="p">,</span> <span class="nx">target_rate</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="nx">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=></span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">input</span> <span class="o">!=</span> <span class="s2">"AudioBuffer"</span><span class="p">)</span>  <span class="p">{</span>
+      <span class="nx">reject</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">target_rate</span> <span class="o">!=</span> <span class="s2">"number"</span> <span class="o">&amp;&amp;</span> <span class="nx">target_rate</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">reject</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="kd">var</span> <span class="nx">resampling_ratio</span> <span class="o">=</span> <span class="nx">input</span><span class="p">.</span><span class="nx">sampleRate</span> <span class="o">/</span> <span class="nx">target_rate</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">final_length</span> <span class="o">=</span> <span class="nx">input</span><span class="p">.</span><span class="nx">length</span> <span class="o">*</span> <span class="nx">resampling_ratio</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">off</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">OfflineAudioContext</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">numberOfChannels</span><span class="p">,</span>
+                                      <span class="nx">final_length</span><span class="p">,</span> <span class="nx">target_rate</span><span class="p">);</span>
+
+    <span class="kd">var</span> <span class="nx">source</span> <span class="o">=</span> <span class="nx">off</span><span class="p">.</span><span class="nx">createBufferSource</span><span class="p">();</span>
+    <span class="nx">source</span><span class="p">.</span><span class="nx">buffer</span> <span class="o">=</span> <span class="nx">input</span><span class="p">;</span>
+    <span class="nx">source</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">off</span><span class="p">.</span><span class="nx">destination</span><span class="p">);</span>
+    <span class="nx">source</span><span class="p">.</span><span class="nx">start</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+    <span class="nx">off</span><span class="p">.</span><span class="nx">startRendering</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">resolve</span><span class="p">)).</span><span class="k">catch</span><span class="p">(</span><span class="nx">reject</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span></pre>
+    <h3 class="heading settled" data-level="4.5" id="track-or-asset-freezing"><span class="secno">4.5. </span><span class="content">Track or asset freezing</span><a class="self-link" href="#track-or-asset-freezing"></a></h3>
+    <p>The <code>OfflineAudioContext</code> can be use to apply, ahead of playback,
+  complex processing to audio buffer, to avoid having to recompute the
+  processing each time. This is called <em>baking</em> or <em>freezing</em>.
+  This can be employed for a full sound-track, as well as, for example, the
+  individual sound effects of a video game.</p>
+    <h3 class="heading settled" data-level="4.6" id="cheaper-reverb"><span class="secno">4.6. </span><span class="content">Cheaper reverb</span><a class="self-link" href="#cheaper-reverb"></a></h3>
+    <p>When using the Web Audio API, the simplest way of adding a reverberation
+  effect to a sound is to connect it into a <code>ConvolverNode</code>, setting
+  its <code>buffer</code> attribute to a reverb impulse, often a decaying curve
+  of some sort, synthesized using a program, or recorded and processed from a
+  real location. While this setup has a very good sound quality (of course,
+  depending on the impulse chosen), it is very expensive to compute. While
+  computers and modern phones are very powerful, longer reverb tails, or running
+  the Web App on a cheap mobile devices might not work.</p>
+    <p>Cheaper reverb can be created using delay lines, all-pass and low-pass
+  filters, to achieve a very convincing effect. This also has the advantage of
+  having parameters you can change, instead of an impulse buffer.</p>
+    <h3 class="heading settled" data-level="4.7" id="cheaper-panning"><span class="secno">4.7. </span><span class="content">Cheaper panning</span><a class="self-link" href="#cheaper-panning"></a></h3>
+    <p>HRTF panning is based on convolution, sounds good, but is very expensive. It
+  can be replaced, for example on mobile, by a very short reverb and an
+  equal-power panner, with a distance function and Cartesian positions adjusted
+  properly. This has the advantage of not requiring very very expensive
+  computation when continuously changing the positions of the listener and
+  source, something that is often the case when basing those positions on sensor
+  data, such as accelerometer and gyroscopes.</p>
    </section>
    <section>
-    <h2 class="heading settled" data-level="4" id="debugging-web-audio-api-applications"><span class="secno">4. </span><span class="content">Debugging Web Audio API applications</span><a class="self-link" href="#debugging-web-audio-api-applications"></a></h2>
-    <h3 class="heading settled" data-level="4.1" id="node-wrapping"><span class="secno">4.1. </span><span class="content">Node Wrapping</span><a class="self-link" href="#node-wrapping"></a></h3>
-    <h3 class="heading settled" data-level="4.2" id="firefox-web-audio-api-debugger"><span class="secno">4.2. </span><span class="content">Firefox' Web Audio API debugger</span><a class="self-link" href="#firefox-web-audio-api-debugger"></a></h3>
+    <h2 class="heading settled" data-level="5" id="debugging-web-audio-api-applications"><span class="secno">5. </span><span class="content">Debugging Web Audio API applications</span><a class="self-link" href="#debugging-web-audio-api-applications"></a></h2>
+    <h3 class="heading settled" data-level="5.1" id="node-wrapping"><span class="secno">5.1. </span><span class="content">Node Wrapping</span><a class="self-link" href="#node-wrapping"></a></h3>
+    <h3 class="heading settled" data-level="5.2" id="firefox-web-audio-api-debugger"><span class="secno">5.2. </span><span class="content">Firefox' Web Audio API debugger</span><a class="self-link" href="#firefox-web-audio-api-debugger"></a></h3>
+    <h3 class="heading settled" data-level="5.3" id="memory-profiling"><span class="secno">5.3. </span><span class="content">Memory profiling</span><a class="self-link" href="#memory-profiling"></a></h3>
    </section>
    <div data-fill-with="conformance"></div>
   </main>
