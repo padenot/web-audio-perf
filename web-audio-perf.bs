@@ -101,7 +101,7 @@ Boilerplate: omit property-index logo copyright references property-index
   <dt>Memory</dt>
   <dd>Fast Fourier Transform algorithms use internal memory for processing.
   Different platforms and browsers have different algorithms, so it's hard to
-  quantify exactly how much memory is going to be used. Additionally, some
+  quantify exactly how much memory is going to be used. Additionaly, some
   memory is going to be used for the <code>AudioBuffer</code> passed in to the
   analysis methods. </dd>
   <dt>Latency</dt>
@@ -496,6 +496,49 @@ Boilerplate: omit property-index logo copyright references property-index
   issuing Web Audio API calls is delayed, allowing more tight delays for
   scheduling things (be it an <code>AudioParam</code>, the starting an
   <code>AudioBufferSourceNode</code>, etc.).
+
+  <h4><code>decodeAudioData</code></h4>
+
+  Gecko based browsers use a thread pool (with multiple threads) when handling
+  multiple <code>decodeAudioData</code> calls, whereas other browsers serialize
+  the decoding on a thread.
+
+  Additionaly, audio is resampled differently, and different audio decoders are
+  used, with different optimizations on different OS and architectures, leading
+  to a wide variety of performance profiles.
+
+  Authors should take advantage of (nowadays ubiquitous) multi-core machines
+  (even phones often have four or more core these days), and try to saturate the
+  CPUs with decoding operations. Since the rendering thread is higher priority
+  than the decoding threads, no audio under-runs are to be expected.
+
+  <h4>Micro-optimizations</h4>
+
+  Audio processing is composed of a lot of very tight loops, repeating a
+  particular operation over and over on audio buffers.
+  Implementations take advantage of SIMD (Single Instruction Multiple Data)
+  available in CPUs, and optimize certain very common operation after profiling,
+  to make processing go faster, in order to render have bigger graphs, allow
+  lower audio latency.
+
+  Gecko has NEON (on ARM) and SSE (on x86) function implementing all the very
+  common functions (Applying a gain in place, copying a buffer while applying a
+  gain value, panning a mono buffer to a stereo position, etc.), as well as
+  optimized FFT code (taken from the FFMPEG project on x86, and OpenMax DL
+  routines on ARM).
+
+  Blink has SSE code for some <code>AudioParam</code> event handling, and has
+  the same FFT code as Gecko (both on x86 and ARM).
+
+  WebKit can use different FFT implementation, depending on the platform, for
+  example the FFT from the Accelerate framework on OSX.
+
+  This results in a variety of performance for FFT-based processing (HRTF
+  panner, <code>ConvolverNode</code>, <code>AnalyserNode</code>, etc.).
+
+  Additionaly, Very often, the decoding code used by the implementation of
+  <code>decodeAudioData</code> are very well optimized using SIMD and a variety
+  of other techniques.
 
 </section>
 <section>
