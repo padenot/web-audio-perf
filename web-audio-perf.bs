@@ -14,24 +14,86 @@ Boilerplate: omit property-index logo copyright references property-index
   In this tutorial, we will look at two different aspects of working with the Web
   Audio API.
 
-  First, we’ll have a look into the performance characteristics of the different
-  <code>AudioNode</code>s available, their performance profile, overall CPU and memory cost,
-  and strategies to use resources (CPU, memory) more efficiently. For example,
-  we’ll learn how to look into the source code of different implementations, and
-  determine the algorithm and techniques used in each browser, to make better
-  choices when developing applications.
+  First, we'll have a look at the different implementations implementations
+  available today, how to inspect their source code, and report problems found
+  while testing application using the Web Audio API with them.
 
-  We’ll then look into ways to make processing lighter, while still retaining the
-  essence of the application, for example to make a "degraded" mode for mobile.
-  We’ll use techniques such as substituting rendering methods to trade fidelity
-  against CPU load, pre-baking assets, minimizing resampling.
+  we’ll then have a look into the performance characteristics of the different
+  <code>AudioNode</code>s available, their performance profile, overall CPU and
+  memory cost, and some strategies to use resources (CPU, memory) more
+  efficiently.
 
-  Throughout the workshop, we’ll use tools and techniques to debug audio problems,
-  both using in-browser tools, or JavaScript code designed to inspect static and
-  dynamic audio graphs and related Web Audio API objects.
+  We'll continue by exploring the different strategies and techniques
+  implementors have used when writing their implementation of the Web Audio API.
+
+  We’ll then look into ways to make processing lighter, while still retaining
+  the essence of the application, for example to make a "degraded" mode for
+  mobile.  We’ll use techniques such as substituting rendering methods to trade
+  fidelity against CPU load, pre-baking assets, minimizing resampling.
+
+  Finally, we'll touch on tools and techniques useful to debug audio problems,
+  both using the browser developer tools, or JavaScript code designed to inspect
+  static and dynamic audio graphs and related Web Audio API objects.
 </section>
 <section>
-  <h2>Optimizing Web Audio API applications</h2>
+  <h2>The different implementations</h2>
+
+  Four complete (if there is such thing, considering the standard is always
+  evolving) Web Audio API are available as of today in browsers:
+
+  <ul>
+    <li>The first ever implementation was part of WebKit. At the time, Chrome
+    and Safari were sharing the same code.</li>
+    <li>Then, Blink got forked from WebKit, and the two gradually diverged. They
+    share a lot of code, but can be considered separate implementations.</li>
+    <li>Gecko was the second implementation, mostly from scratch, but borrowing
+    a few files from the Blink fork, for some processing code.</li>
+    <li>Edge's source are not available.</li>
+  </ul>
+
+  The source code from the first three implementations can be read, compiled and
+  modified, here are the relevant locations:
+
+  <ul>
+    <li>
+    WebKit's implementation lives at <href="XXX putthelink">THE LINK</a>, in
+    at the path <code>/the/path</code>.
+    </li>
+    <li>
+    Blink's implementation can be found at
+    <a href="https://code.google.com/p/chromium/codesearch#chromium/src/">
+      https://code.google.com/p/chromium/codesearch#chromium/src/</a>
+    which is a handy web interface, with cross-referencing of symbols. The Web
+    Audio API implementation lives at
+    <code>third_party/WebKit/Source/modules/webaudio</code>, but a number of
+    classes and functions, intended to be shared among different Chromium modules
+    are located at <code>./third_party/WebKit/Source/platform/audio/</code>.
+    </li>
+    <li>
+    Gecko's implementation can be found at <a
+      href="https://dxr.mozilla.org/mozilla-central">
+      https://dxr.mozilla.org/mozilla-central</a>, which is also a nice web
+    interface with cross-referencing of symbols,
+    and the Web Audio API implementation is located in
+    <code>dom/media/webaudio</code>. Some shared components are in
+    <code>dom/media</code>.
+    </li>
+  </ul>
+
+  Issues (about performance or correctness) can be filed in the project's bug
+  tracker:
+
+  <ul>
+    <li>WebKit: <a href="XXX">XXX</a></li>
+    <li>Blink: <a href="https://new.crbug.com/">https://new.crbug.com/</a></li>
+    <li>Gecko: <a
+      href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Web%20Audio">https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Web%20Audio</a></li>
+  </ul>
+
+  When filing issues, a minimal test case reproducing the issue is very welcome,
+  as is a benchmark in case of performance problems.
+
+  <h2>Performance analysis</h2>
   <h3><code>AudioNode</code>s characteristics</h3>
   This section explains the characteristics of each of the
   <code>AudioNode</code> that are available in the Web Audio API, from four
@@ -409,7 +471,7 @@ Boilerplate: omit property-index logo copyright references property-index
   the values from the <code>AudioBuffer</code> and maybe resamples them.
   The output of this node is passed to the <code>GainNode</code>, that applies
   its own processing, passing down the computed data to the
-  <code>AudioDestinatinoNode</code>.
+  <code>AudioDestinationNode</code>.
 
   Gecko-based browsers and other engines have taken two different approaches for
   ordering Web Audio API graphs.
@@ -439,14 +501,14 @@ Boilerplate: omit property-index logo copyright references property-index
   the <em>rendering thread</em>. Roughly, this mean on the order of 10ms on
   Windows (post-Vista, using WASAPI), very very low on OSX and iOS (a few
   milliseconds), a 30-40ms on Linux/PulseAudio. There are not yet engines that
-  support Jack with low-latency code, altough this would certainly have amazing
+  support Jack with low-latency code, although this would certainly have amazing
   latency numbers.  Windows XP does not usually have great output latency, and
   licensing terms (and available time to write code!) prevent the use of ASIO on
   Windows, which would also have great performance.
 
   Android devices are a bit of a problem, as the latency can vary between 12.5ms
   on a Galaxy Nexus (which was the device with the lowest latency) up to 150ms
-  on some very cheap devices. Altough there is a way to know the latency using
+  on some very cheap devices. Although there is a way to know the latency using
   system API (that browsers use for audio/video synchronization), Web App
   authors don't currently have a way to know the output latency. This is
   currently being addressed (XXX GitHub issue/PR/Spec here).
@@ -455,7 +517,7 @@ Boilerplate: omit property-index logo copyright references property-index
   currently under discussion (XXX GitHub issue/PR/Spec here). This allows a
   number of things, such as battery savings for use-cases that don't require
   very low latency. For example, an application that only does playback, but
-  wants to display the Fourier tranform of the signal, or simply the wave form
+  wants to display the Fourier transform of the signal, or simply the wave form
   of the signal itself, have an equalizer on the signal path, apply compression,
   all would benefit from this feature, because real-time interaction is not
   required. Of course, the latency that is the most efficient, battery-wise and
@@ -469,16 +531,16 @@ Boilerplate: omit property-index logo copyright references property-index
   it audio sample data, automation timeline event arrays, the memory for the
   nodes themselves, etc.). Rendering for a longer period of time means having
   caches that are more hot and lets the CPU crunching numbers without having to
-  wait for memory faults. DAW users often increase the latency when they heard
-  "audio crackles" (under-runs), the same logic applies here. Of course, there
-  is a point where having a higher latency is actually not helping the
-  computation, which depends on all systems.
+  wait for memory faults. Digital Audio Workstation users often increase the
+  latency when they heard "audio crackles" (under-runs), the same logic applies
+  here. Of course, there is a point where having a higher latency is actually
+  not helping the computation. This value depends on the system.
 
   <h4> Browser architecture </h4>
 
   Firefox (that is based on Gecko) uses only one process for all the tabs and
   the chrome (which is the user interface of the browser, that is, the tabs, the
-  menus, etc., a very confusing term nowadays), whereare other browsers use
+  menus, etc., a very confusing term nowadays), whereas other browsers use
   multiple processes.
 
   While the rendering of Web Audio API graphs happen on dedicated thread, this
@@ -525,33 +587,183 @@ Boilerplate: omit property-index logo copyright references property-index
   common functions (Applying a gain in place, copying a buffer while applying a
   gain value, panning a mono buffer to a stereo position, etc.), as well as
   optimized FFT code (taken from the FFMPEG project on x86, and OpenMax DL
-  routines on ARM).
+  routines on ARM). Of course, these optimizations are only used if the CPU on
+  which the browser is running has the necessary extensions, falling back to
+  normal scalar code if not. Depending on the function, those optimizations have
+  proven to be between three and sixteen times faster than their scalar
+  counterpart.
 
   Blink has SSE code for some <code>AudioParam</code> event handling, and has
   the same FFT code as Gecko (both on x86 and ARM).
 
   WebKit can use different FFT implementation, depending on the platform, for
-  example the FFT from the Accelerate framework on OSX.
+  example the FFT from the <em>Accelerate</em> framework on OSX.
 
-  This results in a variety of performance for FFT-based processing (HRTF
-  panner, <code>ConvolverNode</code>, <code>AnalyserNode</code>, etc.).
+  This results in a variety of performance profiles for FFT-based processing
+  (HRTF panner, <code>ConvolverNode</code>, <code>AnalyserNode</code>, etc.).
 
-  Additionaly, Very often, the decoding code used by the implementation of
+  Additionaly, very often, the decoding code used by the implementation of
   <code>decodeAudioData</code> are very well optimized using SIMD and a variety
   of other techniques.
 
 </section>
 <section>
   <h2>Using lighter processing</h2>
+
+  Audio processing is a hard real-time process. If the audio has no been
+  computed when the system is about to output it, drop outs will occur, in the
+  form of clicks, silence, noise and other unpleasant sounds.
+
+  Web Browsers run a variety of platform and devices, some of them being very
+  powerful, and some of them with limited resources. To ensure a smooth
+  experiences for all users and depending on the application itself, it can be
+  necessary to use techniques that does not sound as good as the normal
+  technique, but still allow to have a convincing experience, retaining the
+  essence of the interaction.
+
+  <h3>Custom processing</h3>
+
+  Sometimes, the Web Audio API falls short in what it has to offer, to solve
+  particular problems. It can be necessary to use an <code>AudioWorklet</code>
+  or a <code>ScriptProcessorNode</code> to implement custom processing.
+
+  JavaScript is a very fast language is written properly, but there are a number
+  of rules to obey to achieve this result.
+
+  <ul>
+    <li>
+    Using typed array is a must. They are very fast compared to the normal
+    array. In the Web Audio API, the <code>Float32Array</code> is the most
+    common. Re-using arrays is important, there is no need to spend a lot of
+    time in the allocator code.
+    </li>
+    <li>
+    Keeping the working set small is important, not using a lot of arrays and
+    always using the same data is faster.
+    </li>
+    <li>
+    No DOM manipulation or fiddling with the prototype of object during
+    processing as this invalidates the JITed code.
+    </li>
+    <li>
+    Trying to stay as mono-morphic as possible and always using the same code
+    path yields more optimized JITed code. Suddenly calling a function with
+    a normal array instead of a <code>Float32Array</code> will invalidate a lot
+    of code and take a slow path.
+    </li>
+    <li>
+    Compiling C or C++ to JavaScript (or soon Web Assembly) yields the best
+    performance.  <em>emscripten</em> or other tools can be used to compile
+    libraries or custom code into a typed subset of JavaScript that does not
+    allocate and is very fast at number crunching.
+    </li>
+    <li>
+    Experimental extensions, such as <code>SIMD.js</code> or
+    <code>SharedArrayBuffer</code> can make things run faster, but they are not
+    available in all browsers.
+    </li>
+  </ul>
+
+
+  <h3>Worker-based custom processing</h3>
+
+  All of the above techniques can be used with workers, to offload heavy
+  processing. While the worker does not have access to the Web Audio API,
+  buffers can be transfered without copy, and the audio can then be sent back to
+  the main thread for use with the Web Audio API.
+
+  This has latency implications, and care must be taken so that the worker
+  always has finished processing on time, generally using a FIFO.
+
+  <h3>Copying audio data</h3>
+
+  Reusing <code>AudioBuffer</code> internal data can be performed more
+  efficiently than with calling <code>getChannelData()</code>.
+  <code>copyFromChannel()</code> and <code>copyToChannel()</code> allow the
+  engine to to optimize away some copies and allocations.
+
   <h3>Built-in resampling</h3>
-  <h3>Asset pre-baking</h3>
+
+  The <code>OfflineAudioContext</code> can be use to perform off-main-thread and
+  off-rendering-thread re-resampling of audio buffer. This can have two
+  different uses:
+
+  <ul>
+    <li>
+    By resampling an <code>AudioBuffer</code> to the sample-rate of the
+    <code>AudioContext</code>, no time is spent resampling in the
+    <code>AudioBufferSourceNode</code>.
+    </li>
+    <li>
+    By resampling an <code>AudioBuffer</code> to a low sample rate, memory can
+    be saved. This has sound quality and CPU implications, but not all sounds
+    have partials that are high enough to require a full-band rate.
+    </li>
+  </ul>
+
+  <pre>
+function resample(input, target_rate) {
+  return new Promise((resolve, reject) => {
+    if (typeof input != "AudioBuffer")  {
+      reject()
+    }
+    if (typeof target_rate != "number" && target_rate <= 0) {
+      reject()
+    }
+    var resampling_ratio = input.sampleRate / target_rate;
+    var final_length = input.length * resampling_ratio;
+    var off = new OfflineAudioContext(input.numberOfChannels,
+                                      final_length, target_rate);
+
+    var source = off.createBufferSource();
+    source.buffer = input;
+    source.connect(off.destination);
+    source.start(0);
+
+    off.startRendering().then(resolve)).catch(reject);
+  });
+}
+  </pre>
+
+  <h3>Track or asset freezing</h3>
+
+  The <code>OfflineAudioContext</code> can be use to apply, ahead of playback,
+  complex processing to audio buffer, to avoid having to recompute the
+  processing each time. This is called <em>baking</em> or <em>freezing</em>.
+  This can be employed for a full sound-track, as well as, for example, the
+  individual sound effects of a video game.
+
   <h3>Cheaper reverb</h3>
+
+  When using the Web Audio API, the simplest way of adding a reverberation
+  effect to a sound is to connect it into a <code>ConvolverNode</code>, setting
+  its <code>buffer</code> attribute to a reverb impulse, often a decaying curve
+  of some sort, synthesized using a program, or recorded and processed from a
+  real location. While this setup has a very good sound quality (of course,
+  depending on the impulse chosen), it is very expensive to compute. While
+  computers and modern phones are very powerful, longer reverb tails, or running
+  the Web App on a cheap mobile devices might not work.
+
+  Cheaper reverb can be created using delay lines, all-pass and low-pass
+  filters, to achieve a very convincing effect. This also has the advantage of
+  having parameters you can change, instead of an impulse buffer.
+
   <h3>Cheaper panning</h3>
+
+  HRTF panning is based on convolution, sounds good, but is very expensive. It
+  can be replaced, for example on mobile, by a very short reverb and an
+  equal-power panner, with a distance function and Cartesian positions adjusted
+  properly. This has the advantage of not requiring very very expensive
+  computation when continuously changing the positions of the listener and
+  source, something that is often the case when basing those positions on sensor
+  data, such as accelerometer and gyroscopes.
+
 </section>
 <section>
   <h2>Debugging Web Audio API applications</h2>
   <h3>Node Wrapping</h3>
   <h3>Firefox' Web Audio API debugger</h3>
+  <h3>Memory profiling</h3>
 </section>
 <div data-fill-with="conformance">
 </div>
