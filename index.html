@@ -191,8 +191,8 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
     <p>The source code from the first three implementations can be read, compiled and
   modified, here are the relevant locations:</p>
     <ul>
-     <li> WebKit’s implementation lives at <a href="XXX putthelink">THE LINK</a>, in
-    at the path <code>/the/path</code>. 
+     <li> WebKit’s implementation lives at <a href="https://trac.webkit.org/browser/trunk/">https://trac.webkit.org/browser/trunk/</a>,
+    in at the path <code>/Source/WebCore/Modules/webaudio</code>. 
      <li> Blink’s implementation can be found at <a href="https://code.google.com/p/chromium/codesearch#chromium/src/"> https://code.google.com/p/chromium/codesearch#chromium/src/</a> which is a handy web interface, with cross-referencing of symbols. The Web
     Audio API implementation lives at <code>third_party/WebKit/Source/modules/webaudio</code>, but a number of
     classes and functions, intended to be shared among different Chromium modules
@@ -204,12 +204,14 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
     <p>Issues (about performance or correctness) can be filed in the project’s bug
   tracker:</p>
     <ul>
-     <li>WebKit: <a href="XXX">XXX</a>
-     <li>Blink: <a href="https://new.crbug.com/">https://new.crbug.com/</a>
-     <li>Gecko: <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=Web%20Audio">https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=Web%20Audio</a>
+     <li>WebKit: <a href="https://bugs.webkit.org/enter_bug.cgi?product=WebKit&amp;component=Web%20Audio">https://bugs.webkit.org/enter_bug.cgi?product=WebKit&amp;component=Web%20Audio</a> (WebKit bugzilla account needed).
+     <li>Blink: <a href="https://new.crbug.com/">https://new.crbug.com/</a> (Google account needed).
+     <li>Gecko: <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=Web%20Audio">https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=Web%20Audio</a> (GitHub, Persona or Mozilla Bugzilla account needed).
     </ul>
     <p>When filing issues, a minimal test case reproducing the issue is very welcome,
-  as is a benchmark in case of performance problems.</p>
+  as is a benchmark in case of performance problems. A stand alone HTML file is
+  usually preferred to a jsfiddle, jsbin or similar service, for archival
+  purposes.</p>
     <h2 class="heading settled" data-level="3" id="performance-analysis"><span class="secno">3. </span><span class="content">Performance analysis</span><a class="self-link" href="#performance-analysis"></a></h2>
     <h3 class="heading settled" data-level="3.1" id="audionodes-characteristics"><span class="secno">3.1. </span><span class="content"><code>AudioNode</code>s characteristics</span><a class="self-link" href="#audionodes-characteristics"></a></h3>
      This section explains the characteristics of each of the <code>AudioNode</code> that are available in the Web Audio API, from four
@@ -566,9 +568,9 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   on some very cheap devices. Although there is a way to know the latency using
   system API (that browsers use for audio/video synchronization), Web App
   authors don’t currently have a way to know the output latency. This is
-  currently being addressed (XXX GitHub issue/PR/Spec here).</p>
+  currently being addressed (<a href="https://github.com/WebAudio/web-audio-api/issues/12">#12</a>).</p>
     <p>Creating <code>AudioContext</code> with a higher latency is a feature that is
-  currently under discussion (XXX GitHub issue/PR/Spec here). This allows a
+  currently under discussion (<a href="https://github.com/WebAudio/web-audio-api/issues/348">#348</a>). This allows a
   number of things, such as battery savings for use-cases that don’t require
   very low latency. For example, an application that only does playback, but
   wants to display the Fourier transform of the signal, or simply the wave form
@@ -599,9 +601,9 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
   Audio API, if all the other tabs are still doing some processing, receiving
   events, running script, etc. in the background, the Web Audio API calls will
   be delayed, so it is necessary to plan a bit more in advance (see Chris
-  Wilson’s Tale of two clocks XXX Add link). This is somewhat being addressed
-  by the electrolysis (e10s) project, but there is still a long way to go to
-  catch up in responsiveness.</p>
+  Wilson’s <a href="http://www.html5rocks.com/en/tutorials/audio/scheduling/">Tale of two
+  clocks</a>). This is somewhat being addressed by the electrolysis (e10s)
+project, but there is still a long way to go to catch up in responsiveness.</p>
     <p>Other engines usually use multiple processes, so the event loop load is split
   among multiple processes, and there is less chances that the script that is
   issuing Web Audio API calls is delayed, allowing more tight delays for
@@ -750,8 +752,36 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
    <section>
     <h2 class="heading settled" data-level="5" id="debugging-web-audio-api-applications"><span class="secno">5. </span><span class="content">Debugging Web Audio API applications</span><a class="self-link" href="#debugging-web-audio-api-applications"></a></h2>
     <h3 class="heading settled" data-level="5.1" id="node-wrapping"><span class="secno">5.1. </span><span class="content">Node Wrapping</span><a class="self-link" href="#node-wrapping"></a></h3>
+     A good strategy to debug Web Audio API application is to wrap <code>AudioNode</code>s using ES6’s <code>Proxy</code> or normal prototype
+  override, to keep track of state, and being able to tap in an re-route audio,
+  insert analysers and so on. 
     <h3 class="heading settled" data-level="5.2" id="firefox-web-audio-api-debugger"><span class="secno">5.2. </span><span class="content">Firefox' Web Audio API debugger</span><a class="self-link" href="#firefox-web-audio-api-debugger"></a></h3>
+     Firefox has a custom developer tool panel, that shows the graph, with the
+  following features: 
+    <ul>
+     <li>Ability to see the topology of the graph, garbage collection of nodes
+    and sub-graph portion.
+     <li>Setting and getting the value of <code>AudioNode</code> attributes.
+     <li>Bypass nodes
+    </ul>
+    <p>There are some up and coming feature coming up as well:</p>
+    <ul>
+     <li>Memory consumption of <code>AudioNode</code>s and <code>AudioBuffers</code>.
+     <li> Tapping into nodes, inserting analysers. 
+     <li> Inspecting <code>AudioParam</code> time-lines 
+     <li> CPU profiling of real-time budget 
+    </ul>
     <h3 class="heading settled" data-level="5.3" id="memory-profiling"><span class="secno">5.3. </span><span class="content">Memory profiling</span><a class="self-link" href="#memory-profiling"></a></h3>
+     It is pretty easy to determine the size in bytes of the buffer space used by <code>Audiobuffer</code>: 
+<pre class="highlight"><span class="kd">function</span> <span class="nx">AudioBuffer_to_bytes</span><span class="p">(</span><span class="nx">buffer</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">buffer</span> <span class="k">instanceof</span> <span class="nx">AudioBuffer</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="s2">"not an AudioBuffer."</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kr">const</span> <span class="nx">sizeoffloat32</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="k">return</span> <span class="nx">buffer</span><span class="p">.</span><span class="nx">length</span> <span class="o">*</span> <span class="nx">buffer</span><span class="p">.</span><span class="nx">numberOfChannels</span> <span class="o">*</span> <span class="nx">sizeoffloat32</span><span class="p">;</span>
+<span class="p">}</span></pre>
+    <p>Other memory figures can be obtained in Firefox by going to <code>about:memory</code>, clicking "Measure", and looking to the tab containing your
+  page.</p>
    </section>
    <div data-fill-with="conformance"></div>
   </main>
