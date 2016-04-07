@@ -14,7 +14,7 @@ Audio API that is not in this document.
 - Modify `web-audio-perf.bs`
 - *Optional* run [bikeshed](https://github.com/tabatkins/bikeshed/). If you
   don't want to bother with that, I can do it. There is a `Makefile` to do do.
-- Commit and send a PR
+- Commit and send a PR to `gh-pages` directly.
 
 # License
 
