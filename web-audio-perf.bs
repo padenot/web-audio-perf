@@ -338,7 +338,8 @@ Boilerplate: omit property-index logo copyright references property-index
     all browsers, a peak detecting look-ahead, with a pre-emphasis and
     post-de-emphasis, not too expensive.</dd>
     <dt>Memory</dt>
-    <dd>Not very expensive in terms of memory, just some </dd>
+    <dd>Not very expensive in terms of memory, just some floats to track the
+    internal state.</dd>
     <dt>Latency</dt>
     <dd>Being a look ahead compressor, it introduces a fixed look-ahead of
     six milliseconds.</dd>
