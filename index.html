@@ -2,11 +2,20 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <title>Web Audio API performance and debugging notes</title>
+<script>
+  function plane_mode() {
+    var link = document.createElement("link");
+    link.setAttribute("href", "W3C-ED.css");
+    link.setAttribute("rel", "stylesheet");
+    link.setAttribute("type", "text/css");
+    document.head.appendChild(link);
+  }
+  </script>
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <meta content="ED" name="w3c-status">
   <link href="../default.css" rel="stylesheet" type="text/css">
   <link href="../csslogo.ico" rel="shortcut icon" type="image/x-icon">
-  <link href="https://www.w3.org/StyleSheets/TR/2016/W3C-ED" rel="stylesheet" type="text/css">
+  <link href="https://www.w3.org/StyleSheets/TR/2016/W3C-ED" onerror="plane_mode();" rel="stylesheet" type="text/css">
 <style>
 body.h-entry {
   background-image:none !important;
@@ -85,10 +94,7 @@ body.h-entry {
     </dl>
    </div>
    <p class="copyright" data-fill-with="copyright">
-    <p xmlnsU0003Adct="http://purl.org/dc/terms/"
-    xmlnsU0003Avcard="http://www.w3.org/2001/vcard-rdf/3.0#"> <a
-    href="https://creativecommons.org/publicdomain/zero/1.0/" rel="license">
-  <img alt="CC0" src="https://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;"> </a> <br> To the extent possible under law, <a href="https://padenot.github.io/web-audio-perf" rel="dct:publisher"> <span property="dct:title">Paul Adenot</span></a> has waived all copyright and related or neighboring rights to <span property="dct:title">web-audio-perf</span>.
+    <p xmlnsU0003Adct="http://purl.org/dc/terms/" xmlnsU0003Avcard="http://www.w3.org/2001/vcard-rdf/3.0#"> <a href="http://creativecommons.org/publicdomain/zero/1.0/" rel="license"> <img alt="CC0" src="http://i.creativecommons.org/p/zero/1.0/88x31.png" style="border-style: none;"> </a> <br> To the extent possible under law, <a href="https://padenot.github.io/web-audio-perf" rel="dct:publisher"> <span property="dct:title">Paul Adenot</span></a> has waived all copyright and related or neighboring rights to <span property="dct:title">web-audio-perf</span>.
 This work is published from: <span about="https://padenot.github.io/web-audio-perf" content="FR" datatype="dct:ISO3166" property="vcard:Country"> France</span>. </p>
    </p>
    <hr title="Separator for header">
@@ -431,7 +437,8 @@ This work is published from: <span about="https://padenot.github.io/web-audio-pe
     all browsers, a peak detecting look-ahead, with a pre-emphasis and
     post-de-emphasis, not too expensive.
      <dt>Memory
-     <dd>Not very expensive in terms of memory, just some 
+     <dd>Not very expensive in terms of memory, just some floats to track the
+    internal state.
      <dt>Latency
      <dd>Being a look ahead compressor, it introduces a fixed look-ahead of
     six milliseconds.
