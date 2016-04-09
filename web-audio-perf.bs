@@ -9,19 +9,27 @@ Abstract: These notes present the Web Audio API from a performance and debugging
 group: plain
 Boilerplate: omit property-index logo copyright references property-index
 </pre>
+<style>
+a[data-file] {
+  border-bottom: 1px dotted gray;
+}
+a[data-file]:hover {
+  border-bottom: 2px dotted gray;
+  text-decoration: none;
+}
+</style>
 <section>
   <h2>Introduction</h2>
   In this tutorial, we will look at two different aspects of working with the Web
   Audio API.
 
-  First, we'll have a look at the different implementations implementations
+  First, we'll have a look at the different implementations
   available today, how to inspect their source code, and report problems found
   while testing application using the Web Audio API with them.
 
-  we'll then have a look into the performance characteristics of the different
+  We'll then have a look into the performance characteristics of the different
   <code>AudioNode</code>s available, their performance profile, overall CPU and
-  memory cost, and some strategies to use resources (CPU, memory) more
-  efficiently.
+  memory cost.
 
   We'll continue by exploring the different strategies and techniques
   implementors have used when writing their implementation of the Web Audio API.
@@ -39,16 +47,18 @@ Boilerplate: omit property-index logo copyright references property-index
   <h2>The different implementations</h2>
 
   Four complete (if there is such thing, considering the standard is always
-  evolving) Web Audio API are available as of today in browsers:
+  evolving) Web Audio API implementations are available as of today in browsers:
 
   <ul>
     <li>The first ever implementation was part of WebKit. At the time, Chrome
     and Safari were sharing the same code.</li>
     <li>Then, Blink got forked from WebKit, and the two gradually diverged. They
-    share a lot of code, but can be considered separate implementations.</li>
+    share a lot of code, but can be considered separate implementations these
+    days.</li>
     <li>Gecko was the second implementation, mostly from scratch, but borrowing
     a few files from the Blink fork, for some processing code.</li>
-    <li>Edge's source are not available.</li>
+    <li>Edge's source are not available, but is based on an old snapshot of
+    Blink.</li>
   </ul>
 
   The source code from the first three implementations can be read, compiled and
@@ -131,9 +141,11 @@ Boilerplate: omit property-index logo copyright references property-index
     <dd>The <code>AudioBufferSourceNode</code> automatically resamples its
     <code>buffer</code> attribute to the sample-rate of the <code>AudioContext</code>. Resampling is
     done differently in different browsers. Edge, Blink and Webkit based browser
-    use linear resampling, that is cheap, has no latency, but has low quality.
-    Gecko based browser use a more expensive but higher quality technique, that
-    introduces some latency.</dd>
+    use <a class="chromium" data-file="AudioBufferSourceNode.cpp:302">linear
+      resampling</a>, that is cheap, has no latency, but has low quality.  Gecko
+    based browser use a <a class="firefox"
+      data-file="AudioBufferSourceNode.cpp:294">more expensive</a> but higher
+    quality technique, that introduces some latency.</dd>
     <dt>Memory</dt>
     <dd>The <code>AudioBufferSourceNode</code> reads sample from an
     <code>AudioBuffer</code> that can be shared between multiple nodes. The
@@ -142,12 +154,14 @@ Boilerplate: omit property-index logo copyright references property-index
   <h4> ScriptProcessorNode </h4>
   <dl>
     <dt>CPU</dt>
-    <dd>On Gecko-based browsers, this node uses a message queue to send buffers
-    back and forth between the main thread and the rendering thread. On other
-    browsers, buffer ping-ponging is used. This means that the former is more
-    reliable against dropouts, but can have a higher latency (depending on the
-    main thread event loop load), whereas the latter drops
-    out more easily, but has fixed latency.</dd>
+    <dd>On Gecko-based browsers, this node uses a <a
+      data-file="ScriptProcessorNode.cpp:31" class="firefox">message queue</a>
+    to send buffers back and forth between the main thread and the rendering
+    thread. On other browsers, <a data-file="ScriptProcessorNode.cpp:153"
+      class="chromium">buffer ping-ponging</a> is used. This means that the
+    former is more reliable against dropouts, but can have a higher latency
+    (depending on the main thread event loop load), whereas the latter drops out
+    more easily, but has fixed latency.</dd>
     <dt>Memory</dt>
     <dd>
       Buffers have to be allocated to move audio back and forth between threads.
@@ -155,8 +169,9 @@ Boilerplate: omit property-index logo copyright references property-index
     </dd>
     <dt>Latency</dt>
     <dd> The latency is specified when creating the node. If Gecko has trouble
-    keeping up, the latency will increase, up to a point where audio will start
-    to drop.</dd>
+    keeping up, the latency will increase, up to a point where audio will <a
+      class="firefox" data-file="ScriptProcessorNode.cpp:133">start to
+    drop</a>.</dd>
   </dl>
   <h4> AnalyserNode </h4>
   <dl>
@@ -164,7 +179,8 @@ Boilerplate: omit property-index logo copyright references property-index
   <dd>This node can give frequency domain data, using a Fast Fourier Transform
   algorithm, that is expensive to compute. The higher the buffer size, the more
   expensive the computing is. <code>byte</code> version of the analysis methods
-  are not cheaper than <code>float</code> alternative, they are provided for
+  are <a data-file="AnalyserNode.cpp:228" class="firefox">not cheaper</a> than
+  <code>float</code> alternative, they are provided for
   convenience: the <code>byte</code> version are computed from the
   <code>float</code> version, using simple quantization to 2^8 values.</dd>
   <dt>Memory</dt>
@@ -183,13 +199,14 @@ Boilerplate: omit property-index logo copyright references property-index
   <h4> GainNode </h4>
   <dl>
     <dt>CPU</dt>
-    <dd>Gecko-based browsers, the gain is always applied lazily, and folded in
-    before processing that require to touch the samples, or before send the
+    <dd>Gecko-based browsers, the gain is always <a data-file="GainNode.cpp:72"
+      class="firefox">applied lazily</a>, and folded in before processing that
+    require to touch the samples, or before send the
     rendered buffer back to the operating system, so <code>GainNode</code> with
     a fixed gain are essentially free. In other engines, the gain is applied to
-    the input buffer as it's received. When automating the gain using
-    <code>AudioParam</code> methods, the gain is applied to the buffer in all
-    browsers. </dd>
+    the input buffer <a data-file="GainNode.cpp:51" class="chromium">as it's
+      received</a>. When automating the gain using <code>AudioParam</code>
+    methods, the gain is applied to the buffer in all browsers. </dd>
     <dt>Memory</dt>
     <dd>A <code>GainNode</code> is stateless and has therefore no associated
     memory cost.</dd>
@@ -212,12 +229,14 @@ Boilerplate: omit property-index logo copyright references property-index
   <h4> BiquadFilterNode </h4>
   <dl>
   <dt>CPU</dt>
-    <dd>Biquad filters are relatively cheap (five multiplication and four
-    additions per sample).</dd>
+    <dd>Biquad filters are relatively cheap (<a data-file="blink/Biquad.cpp:66"
+      class="firefox">five multiplication and four additions per
+    sample</a>).</dd>
   <dt>Memory</dt>
   <dd>Very cheap, four float for the memory of the filter.</dd>
   <dt>Latency</dt>
-  <dd>Exactly two frames of latency, due to how the filter works.</dd>
+  <dd>Exactly <a data-file="blink/Biquad.cpp:71" class="firefox">two frames</a>
+  of latency, due to how the filter works.</dd>
   <dt>Tail</dt>
   <dd>Variable tail, depending on the filter setting (in particular the
   resonance).</dd>
@@ -239,8 +258,9 @@ Boilerplate: omit property-index logo copyright references property-index
   <dl>
   <dt>CPU</dt>
   <dd>The computational complexity depends on the oversampling. If no
-  oversampling is used, a sample is read in the wave table, using linear
-  interpolation, which is a cheap process in itself. If oversampling is used, a
+  oversampling is used, a sample is read in the wave table, <a
+    data-file="WaveShaperNode.cpp:197" class="firefox">using linear
+  interpolation</a>, which is a cheap process in itself. If oversampling is used, a
   resampler is used. Depending on the browser engine, different resampling
   techniques can be used (FIR, linear, etc.).</dd>
   <dt>Memory</dt>
@@ -260,17 +280,21 @@ Boilerplate: omit property-index logo copyright references property-index
     <dd><strong>Very</strong> expensive. This node is constantly doing
     convolutions between the input data and a set of HRTF impulse, that are
     characteristic of the elevation and azimuth. Additionaly, when the position
-    changes, it interpolates (cross-fades) between the old and new position, so
-    that the transition between two HRTF impulses is smooth. This means that for
-    a stereo source, and while moving, there can be four convolver processing at
-    once. Additionaly, the HRTF panning needs short delay lines.</dd>
+    changes, it <a data-file="blink/HRTFPanner.cpp:272"
+      class="firefox">interpolates</a> (cross-fades) between the old and new
+    position, so that the transition between two HRTF impulses is smooth. This
+    means that for a stereo source, and while moving, there can be <a
+    data-file="blink/HRTFPanner.cpp:258" class="firefox">four convolvers</a>
+    processing at once. Additionaly, the HRTF panning needs short delay
+    lines.</dd>
     <dt>Memory</dt>
     <dd>The HRTF panner needs to load a set of HRTF impulses around when
     operating. Gecko loads the HRTF database only if needed, while other engines
     load it unconditionally. The convolver and delay lines require memory as
     well, depending on the Fast Fourier Transform implementation used.</dd>
     <dt>Latency</dt>
-    <dd>HRTF always adds some amount of delay, but the amount depends on the
+    <dd>HRTF always adds <a data-file="blink/HRTFPanner.cpp:312"
+    class="firefox">some amount of delay</a>, but the amount depends on the
     azimuth and elevation.</dd>
     <dt>Tail</dt>
     <dd>Similarly, depending on the azimuth and elevation, a tail of different
@@ -282,13 +306,14 @@ Boilerplate: omit property-index logo copyright references property-index
     <dd>Rather cheap. The processing has two parts:
     <ul>
       <li>
-        First, the azimuth needs to be determined from the Cartesian coordinate
-        of the source and listener, this is a bit of vector maths, and can be
-        cached by the implementation for static sources.
+        First, the <a data-file="PannerNode.cpp:409" class="firefox">azimuth
+          needs to be determined</a> from the Cartesian coordinate of the source
+        and listener, this is a bit of vector maths, and can be cached by the
+        implementation for static sources.
       </li>
       <li>
-        Then, gain is applied, maybe blending the two channels is the source is
-        stereo.
+        Then, <a data-file="PanningUtils.h:52" class="firefox">gain is
+        applied</a>, maybe blending the two channels is the source is stereo.
       </li>
   </ul> </dd>
     <dt>Memory</dt>
@@ -307,9 +332,10 @@ Boilerplate: omit property-index logo copyright references property-index
   <dl>
     <dt>CPU</dt>
     <dd>Very expensive, and depending on the duration of the convolution
-    impulse. A background thread is used to offload some of the processing, but
-    computational burst can occur in some browsers. Basically, multiple FFT are
-    computed for each block.</dd>
+    impulse. A <a data-file="blink/ReverbConvolver.cpp:156"
+      class="firefox">background thread</a> is used to offload some of the
+    processing, but computational burst can occur in some browsers. Basically,
+    multiple FFT are computed for each block.</dd>
     <dt>Memory</dt>
     <dd>The node is making a copy of the buffer for internal use, so it's taking
     a fair bit or memory (depending on the duration of the impulse).
@@ -350,13 +376,16 @@ Boilerplate: omit property-index logo copyright references property-index
   <h4> OscillatorNode </h4>
   <dl>
     <dt>CPU</dt>
-    <dd>The basic wave forms are implemented using multiple wave tables computed
+    <dd>The basic wave forms are implemented using multiple <a
+      data-file="OscillatorNode.cpp:261" class=firefox>wave tables</a> computed
     using the inverse Fourier transform of a buffer with carefully chosen
-    coefficients (apart from the sine that is computed directly in Gecko). This
-    means that there is an initial cost when changing the wave form, that is
-    cached in Gecko-based browser. After the initial cost, processing is
-    essentially doing linear interpolation between multiple wave tables. When
-    the frequency changes, new tables have to be computed.
+    coefficients (apart from the sine that is <a
+      data-file="OscillatorNode.cpp:219" class=firefox>computed directly</a> in
+    Gecko). This means that there is an initial cost when changing the wave
+    form, that is <a data-file="OscillatorNode.cpp:118"
+      class="firefox">cached</a> in Gecko-based browser. After the initial cost,
+    processing is essentially doing linear interpolation between multiple wave
+    tables. When the frequency changes, new tables have to be computed.
     </dd>
     <dt>Memory</dt>
     <dd>A number of wave tables have to be stored, that can take up some memory.
@@ -817,5 +846,23 @@ function resample(input, target_rate) {
 </section>
 <div data-fill-with="conformance">
 </div>
+<script>
+  var chromiumFiles = document.querySelectorAll(".chromium");
+  for (var i = 0; i < chromiumFiles.length; i++) {
+    var tuple = chromiumFiles[i].dataset.file.split(":");
+    var file = tuple[0];
+    var line = tuple[1];
+    chromiumFiles[i].href =
+    "https://code.google.com/p/chromium/codesearch#chromium/src/third_party/WebKit/Source/modules/webaudio/"+file+"&l="+line;
+  }
+  var firefoxFile = document.querySelectorAll(".firefox");
+  for (var i = 0; i < firefoxFile.length; i++) {
+    var tuple = firefoxFile[i].dataset.file.split(":");
+    var file = tuple[0];
+    var line = tuple[1];
+    firefoxFile[i].href =
+      "https://dxr.mozilla.org/mozilla-central/source/dom/media/webaudio/" + file + "#" + line;
+  }
+</script>
 </body>
 </html>
