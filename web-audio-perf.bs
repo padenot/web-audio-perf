@@ -760,7 +760,7 @@ function resample(input, target_rate) {
     source.connect(off.destination);
     source.start(0);
 
-    off.startRendering().then(resolve)).catch(reject);
+    off.startRendering().then(resolve).catch(reject);
   });
 }
   </pre>
