@@ -667,7 +667,7 @@ project, but there is still a long way to go to catch up in responsiveness.
   particular problems. It can be necessary to use an <code>AudioWorklet</code>
   or a <code>ScriptProcessorNode</code> to implement custom processing.
 
-  JavaScript is a very fast language is written properly, but there are a number
+  JavaScript is a very fast language if written properly, but there are a number
   of rules to obey to achieve this result.
 
   <ul>
