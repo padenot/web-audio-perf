@@ -583,7 +583,7 @@ a[data-file]:hover {
   multiple processes.
 
   While the rendering of Web Audio API graphs happen on dedicated thread, this
-  has important implications in terms of responsiveness. The event loop is Gecko
+  has important implications in terms of responsiveness. The event loop in Gecko
   is shared between all the tabs. When using a Web Application that uses the Web
   Audio API, if all the other tabs are still doing some processing, receiving
   events, running script, etc. in the background, the Web Audio API calls will
